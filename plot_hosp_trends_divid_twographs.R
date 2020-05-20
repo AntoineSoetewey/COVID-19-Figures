@@ -305,5 +305,3 @@ ggarrange(ggarrange(fig_map1, fig_map2, ncol = 1),
   ncol = 2, widths = c(1, 1.5)
 )
 dev.off()
-
-# plot(map.data$new_in_divid, map.data$new_in_divid2)
