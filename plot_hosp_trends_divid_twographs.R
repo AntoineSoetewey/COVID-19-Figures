@@ -43,7 +43,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
   ),
   labels = c(
     "Antwerpen",
-    "Brabant Wallon",
+    "Brabant wallon",
     "Brussels",
     "Hainaut",
     "Liège",
@@ -298,7 +298,7 @@ fig_map2 <- ggplot(map.data) +
 
 
 
-
+# save plot
 png(file = "Belgian_Hospitalisations_COVID-19_1.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(fig_map1, fig_map2, ncol = 1),
   grid.arrange(fig_trends, bottom = caption),
