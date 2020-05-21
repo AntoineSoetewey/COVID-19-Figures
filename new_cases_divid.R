@@ -30,7 +30,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "BrabantWallon",
     "Brussels",
     "Hainaut",
-    "Li\xe8ge",
+    "Liège",
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -90,7 +90,7 @@ p <- ggplot(dat) +
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Ligne solide : moyenne mobile sur 5 jours / Volle lijnen : ADD IN DUTCH \n * Barres : nouveaux cas confirmés / ADD IN DUTCH",
+  textGrob(" * Ligne solide : moyenne mobile sur 5 jours / Volle lijnen : 5-daags voortschrijdend gemiddelde  \n * Barres : nouveaux cas confirmés / Staafdiagrammen : nieuwe bevestigde gevallen",
            x = 0, hjust = 0, vjust = 0,
            gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
   ),
