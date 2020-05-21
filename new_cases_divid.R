@@ -79,10 +79,11 @@ p <- ggplot(dat) +
   geom_bar(fill = "steelblue") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE), scales = "fixed") +
-  geom_line(aes(y = rollmean(CASES_divid, 5, fill = NA)),
-    color = "#0c4c8a"
+  geom_line(aes(y = rollmean(CASES_divid, 7, fill = NA)),
+           # linetype = "dashed",
+            color = "darkgrey", size = 0.5
   ) +
-  labs(x = "", y = "Nouveaux cas confirmés (par 100,000 habitants) / Bevestigde nieuwe gevallen (per 100,000 inwoners)") +
+    labs(x = "", y = "Nouveaux cas confirmés (par 100,000 habitants) / Bevestigde nieuwe gevallen (per 100,000 inwoners)") +
   labs(
     title = "Evolution des nouveaux cas confirmés / Evolutie van nieuwe bevestigde gevallen - COVID-19"
   ) +
@@ -90,7 +91,7 @@ p <- ggplot(dat) +
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Ligne solide : moyenne mobile sur 5 jours / Volle lijnen : 5-daags voortschrijdend gemiddelde  \n * Barres : nouveaux cas confirmés / Staafdiagrammen : nieuwe bevestigde gevallen",
+  textGrob(" * Ligne solide : moyenne mobile sur 7 jours / Volle lijnen : 7-daags voortschrijdend gemiddelde  \n * Barres : nouveaux cas confirmés / Staafdiagrammen : nieuwe bevestigde gevallen",
            x = 0, hjust = 0, vjust = 0,
            gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
   ),
