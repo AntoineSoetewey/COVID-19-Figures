@@ -78,7 +78,7 @@ p <- ggplot(dat) +
   aes(x = DATE, weight = CASES_divid) +
   geom_bar(fill = "steelblue") +
   theme_minimal() +
-  facet_wrap(vars(PROVINCE), scales = "free") +
+  facet_wrap(vars(PROVINCE), scales = "fixed") +
   geom_line(aes(y = rollmean(CASES_divid, 5, fill = NA)),
     color = "#0c4c8a"
   ) +
