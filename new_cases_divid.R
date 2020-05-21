@@ -1,3 +1,5 @@
+# clean environment
+remove(list = ls())
 # required packages
 library(ggplot2)
 library(ggrepel)
@@ -30,7 +32,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "BrabantWallon",
     "Brussels",
     "Hainaut",
-    "Liège",
+    "Li\xe8ge",
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -73,21 +75,48 @@ dat <- dat %>%
   )) %>%
   mutate(CASES_divid = CASES / population * 100000)
 
+# aggregate total number of cases per 100,000 inhabitants
+dat_total <- aggregate(CASES_divid ~ PROVINCE, dat, sum)
+
+# add total number of cases (/100000 inhabitants) per province
+dat <- dat %>%
+mutate(total = case_when(
+  PROVINCE == "Antwerpen" ~ dat_total[1, 2],
+  PROVINCE == "Brabant wallon" ~ dat_total[2, 2],
+  PROVINCE == "Brussels" ~ dat_total[3, 2],
+  PROVINCE == "Hainaut" ~ dat_total[4, 2],
+  PROVINCE == "Liège" ~ dat_total[5, 2],
+  PROVINCE == "Limburg" ~ dat_total[6, 2],
+  PROVINCE == "Luxembourg" ~ dat_total[7, 2],
+  PROVINCE == "Namur" ~ dat_total[8, 2],
+  PROVINCE == "Oost-Vlaanderen" ~ dat_total[9, 2],
+  PROVINCE == "Vlaams-Brabant" ~ dat_total[10, 2],
+  PROVINCE == "West-Vlaanderen" ~ dat_total[11, 2],
+  PROVINCE == "Belgique/België" ~ dat_total[12, 2]
+))
+
 # Create plot in ndls/fr
 p <- ggplot(dat) +
   aes(x = DATE, weight = CASES_divid) +
   geom_bar(fill = "steelblue") +
   theme_minimal() +
-  facet_wrap(vars(PROVINCE), scales = "fixed") +
+  facet_wrap(vars(PROVINCE),
+             scales = "free_x") +
   geom_line(aes(y = rollmean(CASES_divid, 7, fill = NA)),
-           # linetype = "dashed",
             color = "darkgrey", size = 0.5
   ) +
     labs(x = "", y = "Nouveaux cas confirmés (par 100,000 habitants) / Bevestigde nieuwe gevallen (per 100,000 inwoners)") +
   labs(
     title = "Evolution des nouveaux cas confirmés / Evolutie van nieuwe bevestigde gevallen - COVID-19"
   ) +
-  scale_x_date(labels = date_format("%m-%Y"))
+  scale_x_date(labels = date_format("%m-%Y")) +
+  geom_text(
+    data    = dat_total,
+    mapping = aes(as.Date(max(dat$DATE) - 15), y=max(dat$CASES_divid, na.rm = TRUE) - 3,
+                  label = paste0("Total: ", round(CASES_divid))),
+    color="darkgrey",
+    size = 3
+  )
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
@@ -101,7 +130,6 @@ caption <- grobTree(
   ),
   cl = "ann"
 )
-
 
 # save plot
 png(file = "new_cases_divid.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
