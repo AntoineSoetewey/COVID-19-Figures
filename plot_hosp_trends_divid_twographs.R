@@ -43,7 +43,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
   ),
   labels = c(
     "Antwerpen",
-    "Brabant wallon",
+    "Brabant Wallon",
     "Brussels",
     "Hainaut",
     "Liège",
