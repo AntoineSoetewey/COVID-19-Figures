@@ -11,7 +11,7 @@ library(ggpubr)
 library(grid)
 library(gridExtra)
 
-# import Sciensano hospitaliszations data
+# import Sciensano hospitalisations data
 dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv")
 
 # aggregate new intakes by province and date
@@ -75,12 +75,7 @@ dat <- dat %>%
   )) %>%
   mutate(NEW_IN_divid = NEW_IN / population * 100000)
 
-# create poisson function
-# poisson_smooth <- function(...) {
-#   geom_smooth(method = "glm", method.args = list(family = "Poisson"), ...)
-# }
-
-# Create plot in ndls/fr
+# Create plot in dutch/fr
 fig_trends <- ggplot(
   dat,
   aes(x = DATE, y = NEW_IN_divid)
@@ -94,16 +89,11 @@ fig_trends <- ggplot(
   facet_wrap(vars(PROVINCE),
     scales = "free"
   ) +
-  # poisson_smooth(
-  #   formula = y ~ splines::ns(x, 4),
-  #   se = FALSE,
-  #   col = "darkgrey"
-  # ) +
   geom_smooth(
     se = FALSE,
-    col = "grey"
-    # , span=0.1
-    , method = "gam", formula = y ~ s(x)
+    col = "grey",
+    method = "gam",
+    formula = y ~ s(x)
   ) +
   geom_vline(
     xintercept = as.Date("2020-05-04"), linetype = "dashed",
@@ -152,8 +142,6 @@ fig_trends <- ggplot(
   scale_y_continuous(breaks = seq(from = 0, to = 10, by = 2), limits = c(0, 10)) +
   scale_x_date(labels = date_format("%m-%Y"))
 
-fig_trends
-
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
   textGrob(" * Lignes solides : courbes ajustées aux observations / Volle lijnen : gefitte curves \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2",
@@ -166,8 +154,6 @@ caption <- grobTree(
   ),
   cl = "ann"
 )
-
-
 
 
 ##### MAPS
@@ -251,13 +237,11 @@ fig_map1 <- ggplot(map.data) +
     check_overlap = TRUE
   ) +
   labs(fill = bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.)", bold(.(period1)))))) +
-  # labs(fill=paste0("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.) \n", period1))+
   theme_void() +
   theme(
     # Change legend
     legend.position = c(0.2, 0.22),
     legend.title = element_text(size = 12, color = "black"),
-    # legend.title = element_text(size = 9, color = "black"),
     legend.text = element_text(color = "black"),
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
@@ -285,13 +269,11 @@ fig_map2 <- ggplot(map.data) +
     check_overlap = TRUE
   ) +
   labs(fill = bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.)", bold(.(period2)))))) +
-  # labs(fill=paste0("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.) \n", period2))+
   theme_void() +
   theme(
     # Change legend
     legend.position = c(0.2, 0.22),
     legend.title = element_text(size = 12, color = "black"),
-    # legend.title = element_text(size = 9, color = "black"),
     legend.text = element_text(color = "black"),
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
