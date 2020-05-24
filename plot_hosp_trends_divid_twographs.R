@@ -75,6 +75,7 @@ dat <- dat %>%
   )) %>%
   mutate(NEW_IN_divid = NEW_IN / population * 100000)
 
+
 # Create plot in dutch/fr
 fig_trends <- ggplot(
   dat,
