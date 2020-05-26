@@ -10,6 +10,7 @@ library(scales)
 library(ggpubr)
 library(grid)
 library(gridExtra)
+library(broom)
 
 # import Sciensano hospitalisations data
 dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv")
@@ -77,17 +78,37 @@ dat <- dat %>%
 
 # create ratio of last n days to previous n days
 n <- 7
-dat_t7 <- dat %>% 
-  group_by(PROVINCE) %>% 
+dat_t7 <- dat %>%
+  group_by(PROVINCE) %>%
   slice((n() - (n - 1)):n())
 
-dat_t14 <- dat %>% 
-  group_by(PROVINCE) %>% 
-  slice((n() - (2*n - 1)):(n() - n))
+dat_t14 <- dat %>%
+  group_by(PROVINCE) %>%
+  slice((n() - (2 * n - 1)):(n() - n))
 
 dat_ratio <- data.frame(aggregate(NEW_IN ~ PROVINCE, dat_t7, sum),
-                        NEW_IN_14 = aggregate(NEW_IN ~ PROVINCE, dat_t14, sum)[, 2])
+  NEW_IN_14 = aggregate(NEW_IN ~ PROVINCE, dat_t14, sum)[, 2]
+)
 dat_ratio$ratio <- dat_ratio$NEW_IN / dat_ratio$NEW_IN_14
+
+## Niko
+# create dataframe
+dat_t <- rbind(dat_t7, dat_t14)
+grp <- c(rep(1, 84), rep(2, 84))
+dat_t <- data.frame(dat_t[, 2:4], grp = as.factor(grp))
+
+# fit models
+fitted_models <- dat_t %>%
+  group_by(PROVINCE) %>%
+  do(model = glm(NEW_IN ~ grp, data = ., family = poisson))
+
+fitted_models_tidy <- fitted_models %>%
+  tidy(model)
+# View(fitted_models_tidy)
+
+# add p-values of fitted models to dataframe
+dat_ratio <- cbind(dat_ratio,
+                   fitted_models_tidy[seq(from = 2, to = 24, by = 2), 6])
 
 
 # Create plot in dutch/fr
@@ -147,9 +168,11 @@ fig_trends <- ggplot(
   scale_y_continuous(breaks = seq(from = 0, to = 10, by = 1), limits = c(0, 3)) +
   scale_x_date(labels = date_format("%d-%m")) +
   geom_text(
-    data    = dat_ratio,
-    mapping = aes(x = Sys.Date() + 3, y = 2.5,
-                  label = paste0("Change: ", round(ratio, 2))),
+    data = dat_ratio,
+    mapping = aes(
+      x = Sys.Date() + 3, y = 2.5,
+      label = ifelse(p.value < 0.05, paste0("Change: ", round(ratio, 2)), NA)
+    ),
     color = "darkgrey",
     size = 4
   )
@@ -158,13 +181,13 @@ fig_trends <- ggplot(
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Lignes solides : courbes ajustées aux observations / Volle lijnen : gefitte curves \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2 \n * Change = hospitalisations les 7 derniers jours / hospitalisations les 7 jours d'avant -- ADD IN DUTCH",
-           x = 0, hjust = 0, vjust = 0,
-           gp = gpar(col = "darkgray", fontsize = 7, lineheight = 0.8)
+  textGrob(" * Lignes solides : courbes ajustées aux observations / Volle lijnen : gefitte curves \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2 \n * Change = hospitalisations des 7 derniers jours / hospitalisations des 7 jours d'avant -- ADD IN DUTCH",
+    x = 0, hjust = 0, vjust = 0,
+    gp = gpar(col = "darkgray", fontsize = 7, lineheight = 0.8)
   ),
   textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
-           x = 1, hjust = 1, vjust = 0,
-           gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
+    x = 1, hjust = 1, vjust = 0,
+    gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
   ),
   cl = "ann"
 )
