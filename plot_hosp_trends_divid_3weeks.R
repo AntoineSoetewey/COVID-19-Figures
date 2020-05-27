@@ -218,7 +218,7 @@ fig_trends <- ggplot(
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Lignes solides : moyennes 7 jours / Volle lijnen : ADD IN DUTCH \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2",
+  textGrob(" * Lignes solides : moyennes 7 jours / Volle lijnen : 7-daags gemiddelde \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2",
     x = 0, hjust = 0, vjust = 0,
     gp = gpar(col = "darkgray", fontsize = 7, lineheight = 0.8)
   ),
