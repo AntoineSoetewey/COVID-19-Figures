@@ -33,7 +33,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "BrabantWallon",
     "Brussels",
     "Hainaut",
-    "Li\xe8ge",
+    "LiÃ¨ge",
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -90,15 +90,19 @@ dat_t21 <- dat %>%
   group_by(PROVINCE) %>%
   slice((n() - (3 * n - 1)):(n() - 2 * n))
 
+dat_t28 <- dat %>%
+  group_by(PROVINCE) %>%
+  slice((n() - (4 * n - 1)):(n() - 3 * n))
+
 # create means for the periods
 dat_7mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t7, mean)
 dat_14mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t14, mean)
 dat_21mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t21, mean)
-
+dat_28mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t28, mean)
 
 # Create plot in dutch/fr
 fig_trends <- ggplot(
-  subset(dat, DATE >= "2020-05-01"), # subset data from May 1
+  subset(dat, DATE >= "2020-05-02"), # subset data from May 3
   aes(x = DATE, y = NEW_IN_divid)
 ) +
   geom_point(
@@ -137,9 +141,11 @@ fig_trends <- ggplot(
   scale_y_continuous(breaks = seq(from = 0, to = 10 * 10, by = 1 * 10), limits = c(0, 3 * 10)) +
   scale_x_date(labels = date_format("%d-%m")) +
   geom_hline(
-    yintercept = 1.1 * 10,
-    linetype = "dotted",
+    yintercept = 100/(11431406/1000000),
+    linetype = "dashed",
     color = "darkgrey"
+    #,
+#    size=4
   ) +
   geom_segment(
     data = dat_7mean,
@@ -174,12 +180,24 @@ fig_trends <- ggplot(
     color = "darkgrey",
     lwd = 1.2
   ) +
+  geom_segment(
+    data = dat_28mean,
+    aes(
+      y = NEW_IN_divid,
+      yend = NEW_IN_divid,
+      x = max(dat$DATE) - 3 * n - (n - 1),
+      xend = max(dat$DATE) - 3 * n
+    ),
+    color = "darkgrey",
+    lwd = 1.2
+  ) +
+  
   geom_text(
     data = dat_7mean,
     mapping = aes(
       x = max(dat$DATE) - 1,
       y = NEW_IN_divid,
-      label = round(NEW_IN_divid, 1),
+      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
       hjust = 2
     ),
@@ -192,7 +210,7 @@ fig_trends <- ggplot(
     mapping = aes(
       x = max(dat$DATE) - n - 1,
       y = NEW_IN_divid,
-      label = round(NEW_IN_divid, 1),
+      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
       hjust = 2
     ),
@@ -205,7 +223,20 @@ fig_trends <- ggplot(
     mapping = aes(
       x = max(dat$DATE) - 2 * n - 1,
       y = NEW_IN_divid,
-      label = round(NEW_IN_divid, 1),
+      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
+      vjust = -0.5,
+      hjust = 2
+    ),
+    color = "darkgrey",
+    size = 4,
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = dat_28mean,
+    mapping = aes(
+      x = max(dat$DATE) - 3 * n - 1,
+      y = NEW_IN_divid,
+      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
       hjust = 2
     ),
@@ -218,7 +249,7 @@ fig_trends <- ggplot(
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Lignes solides : moyennes 7 jours / Volle lijnen : 7-daags gemiddelde \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2",
+  textGrob(" * Lignes solides : moyennes 7 jours (4 semaines) / Volle lijnen : 7-daags gemiddelde (4 weken) \n * Lignes pointillées : phases de déconfinement / Gestippelde lijnen: fases afbouw lockdown",
     x = 0, hjust = 0, vjust = 0,
     gp = gpar(col = "darkgray", fontsize = 7, lineheight = 0.8)
   ),
