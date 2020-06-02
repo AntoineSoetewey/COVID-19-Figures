@@ -27,13 +27,26 @@ dat <- rbind(dat, belgium)
 # transform date and provinces
 dat$DATE <- as.Date(dat$DATE)
 dat$PROVINCE <- factor(dat$PROVINCE,
-  levels = levels(dat$PROVINCE),
+  levels = c(
+    "Antwerpen",
+    "BrabantWallon",
+    "Brussels",
+    "Hainaut",
+    "Liège",
+    "Limburg",
+    "Luxembourg",
+    "Namur",
+    "OostVlaanderen",
+    "VlaamsBrabant",
+    "WestVlaanderen",
+    "Belgium"
+  ),
   labels = c(
     "Antwerpen",
     "Brabant Wallon",
     "Brussels",
     "Hainaut",
-    "LiÃ¨ge",
+    "Liège",
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -51,7 +64,7 @@ dat <- dat %>%
     PROVINCE == "Brabant Wallon" ~ 403599,
     PROVINCE == "Brussels" ~ 1208542,
     PROVINCE == "Hainaut" ~ 1344241,
-    PROVINCE == "LiÃ¨ge" ~ 1106992,
+    PROVINCE == "Liège" ~ 1106992,
     PROVINCE == "Limburg" ~ 874048,
     PROVINCE == "Luxembourg" ~ 284638,
     PROVINCE == "Namur" ~ 494325,
@@ -164,7 +177,7 @@ dat_ag <- dat %>%
   group_by(PROVINCE) %>%
   summarize(
     "new_in" = sum(NEW_IN, na.rm = T),
-    "new_in2"= sum(NEW_IN[DATE>=(Sys.Date()-15)], na.rm = T), 
+    "new_in2" = sum(NEW_IN[DATE >= (Sys.Date() - 15)], na.rm = T),
     "population" = max(population, na.rm = T)
   ) %>%
   mutate(
@@ -199,8 +212,10 @@ points1 <- subset(points, !PROVINCE %in% "Vlaams-Brabant")
 points2 <- subset(points, PROVINCE %in% "Vlaams-Brabant")
 
 period1 <- paste0("Période / periode : 15/03 - ", format(Sys.Date() - 1, format = "%d/%m"), "   ")
-period2<- paste0("Période / periode : ", format(Sys.Date()-15, format = "%d/%m"), " - ", 
-                 format(Sys.Date()-1, format = "%d/%m"),"   ")
+period2 <- paste0(
+  "Période / periode : ", format(Sys.Date() - 15, format = "%d/%m"), " - ",
+  format(Sys.Date() - 1, format = "%d/%m"), "   "
+)
 
 
 
