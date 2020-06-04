@@ -33,7 +33,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "BrabantWallon",
     "Brussels",
     "Hainaut",
-    "LiÃ¨ge",
+    "Liège",
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -141,11 +141,11 @@ fig_trends <- ggplot(
   scale_y_continuous(breaks = seq(from = 0, to = 10 * 10, by = 1 * 10), limits = c(0, 3 * 10)) +
   scale_x_date(labels = date_format("%d-%m")) +
   geom_hline(
-    yintercept = 100/(11431406/1000000),
+    yintercept = 100 / (11431406 / 1000000),
     linetype = "dashed",
     color = "darkgrey"
-    #,
-#    size=4
+    # ,
+    #    size=4
   ) +
   geom_segment(
     data = dat_7mean,
@@ -191,15 +191,14 @@ fig_trends <- ggplot(
     color = "darkgrey",
     lwd = 1.2
   ) +
-  
   geom_text(
     data = dat_7mean,
     mapping = aes(
       x = max(dat$DATE) - 1,
       y = NEW_IN_divid,
-      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
+      label = format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
-      hjust = 2
+      hjust = 1
     ),
     color = "darkgrey",
     size = 4,
@@ -210,9 +209,9 @@ fig_trends <- ggplot(
     mapping = aes(
       x = max(dat$DATE) - n - 1,
       y = NEW_IN_divid,
-      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
+      label = format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
-      hjust = 2
+      hjust = 1
     ),
     color = "darkgrey",
     size = 4,
@@ -223,9 +222,9 @@ fig_trends <- ggplot(
     mapping = aes(
       x = max(dat$DATE) - 2 * n - 1,
       y = NEW_IN_divid,
-      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
+      label = format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
-      hjust = 2
+      hjust = 1
     ),
     color = "darkgrey",
     size = 4,
@@ -236,9 +235,9 @@ fig_trends <- ggplot(
     mapping = aes(
       x = max(dat$DATE) - 3 * n - 1,
       y = NEW_IN_divid,
-      label =  format(round(NEW_IN_divid, 1), nsmall = 1),
+      label = format(round(NEW_IN_divid, 1), nsmall = 1),
       vjust = -0.5,
-      hjust = 2
+      hjust = 1
     ),
     color = "darkgrey",
     size = 4,
@@ -283,14 +282,18 @@ map$PROVINCE[c(1, 5)] <- c("Brussels", "Vlaams-Brabant")
 dat_ag <- dat %>%
   group_by(PROVINCE) %>%
   summarize(
-    "new_in" = sum(NEW_IN[DATE>=(Sys.Date()-31)], na.rm = T),
-    "new_in2"= sum(NEW_IN[DATE>=(Sys.Date()-8)], na.rm = T), 
+    "new_in" = sum(NEW_IN[DATE >= (Sys.Date() - 31)], na.rm = T),
+    "new_in2" = sum(NEW_IN[DATE >= (Sys.Date() - 8)], na.rm = T),
     "population" = max(population, na.rm = T)
   ) %>%
-  mutate(new_in_divid = new_in / population * 100000,
-         new_in_divid2 = new_in2 / population * 100000,
-         class2=cut(new_in_divid2, breaks = c(0,0.001,2.5,9,100), 
-           include.lowest = TRUE, labels = c("0.0", "] 0.0, 2.5 ]","] 2.5, 9.0 ]","> 9.0")))
+  mutate(
+    new_in_divid = new_in / population * 100000,
+    new_in_divid2 = new_in2 / population * 100000,
+    class2 = cut(new_in_divid2,
+      breaks = c(0, 0.001, 2.5, 9, 100),
+      include.lowest = TRUE, labels = c("0.0", "] 0.0, 2.5 ]", "] 2.5, 9.0 ]", "> 9.0")
+    )
+  )
 
 
 
@@ -303,32 +306,36 @@ points <- st_centroid(map.data)
 points <- cbind(map.data, st_coordinates(st_centroid(map.data$geometry)))
 
 points <- mutate(points,
-                 num_1 = paste("(", round(new_in_divid, 1), ")"),
-                 num_2 = paste("(", round(new_in_divid2, 1), ")"),
-                 q1 = as.numeric(cut(new_in_divid,
-                                     breaks = quantile(new_in_divid, probs = seq(0, 1, by = 0.2), na.rm = TRUE),
-                                     include.lowest = TRUE
-                 )),
-                 q2 = as.numeric(cut(new_in_divid2,
-                                     breaks = quantile(new_in_divid2, probs = seq(0, 1, by = 0.2), na.rm = TRUE),
-                                     include.lowest = TRUE
-                 )),
-                 q1 = as.factor(ifelse(q1 < 5, 1, 2)),
-                 q2 = as.factor(ifelse(q2 < 5, 1, 2))
+  num_1 = paste("(", round(new_in_divid, 1), ")"),
+  num_2 = paste("(", round(new_in_divid2, 1), ")"),
+  q1 = as.numeric(cut(new_in_divid,
+    breaks = quantile(new_in_divid, probs = seq(0, 1, by = 0.2), na.rm = TRUE),
+    include.lowest = TRUE
+  )),
+  q2 = as.numeric(cut(new_in_divid2,
+    breaks = quantile(new_in_divid2, probs = seq(0, 1, by = 0.2), na.rm = TRUE),
+    include.lowest = TRUE
+  )),
+  q1 = as.factor(ifelse(q1 < 5, 1, 2)),
+  q2 = as.factor(ifelse(q2 < 5, 1, 2))
 )
 
 points1 <- subset(points, !PROVINCE %in% "Vlaams-Brabant")
 points2 <- subset(points, PROVINCE %in% "Vlaams-Brabant")
 
-period1<- paste0("Période / periode : ", format(Sys.Date()-31, format = "%d/%m")," - ", 
-                 format(Sys.Date()-1, format = "%d/%m"),"   ")
-period2<- paste0("Période / periode : ", format(Sys.Date()-8, format = "%d/%m"), " - ", 
-                 format(Sys.Date()-1, format = "%d/%m"),"   ")
+period1 <- paste0(
+  "Période / periode : ", format(Sys.Date() - 31, format = "%d/%m"), " - ",
+  format(Sys.Date() - 1, format = "%d/%m"), "   "
+)
+period2 <- paste0(
+  "Période / periode : ", format(Sys.Date() - 8, format = "%d/%m"), " - ",
+  format(Sys.Date() - 1, format = "%d/%m"), "   "
+)
 
 fig_map2 <- ggplot(map.data) +
   geom_sf(aes(fill = class2)) +
-  #here you can change the number of blues in the pallete "n" (maximum=9)
-  scale_fill_manual(values=c("white","#ffe5e5","#ff9999","#ff0000"), drop = FALSE) +
+  # here you can change the number of blues in the pallete "n" (maximum=9)
+  scale_fill_manual(values = c("white", "#ffe5e5", "#ff9999", "#ff0000"), drop = FALSE) +
   geom_text(
     data = points1, aes(x = X, y = Y + 0.03, label = PROVINCE, colour = q1), size = 3,
     check_overlap = TRUE
@@ -346,15 +353,14 @@ fig_map2 <- ggplot(map.data) +
     data = points2, aes(x = X + 0.07, y = Y + 0.03, label = num_2), col = "black", size = 3,
     check_overlap = TRUE
   ) +
-  
-  labs(fill=bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.)", bold(.(period2))))))+
-  #labs(fill=paste0("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.) \n", period1))+
+  labs(fill = bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.)", bold(.(period2)))))) +
+  # labs(fill=paste0("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.) \n", period1))+
   theme_void() +
   theme(
     # Change legend
     legend.position = c(0.2, 0.22),
     legend.title = element_text(size = 12, color = "black"),
-    #legend.title = element_text(size = 9, color = "black"),
+    # legend.title = element_text(size = 9, color = "black"),
     legend.text = element_text(color = "black"),
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
@@ -362,12 +368,7 @@ fig_map2 <- ggplot(map.data) +
 
 png(file = "Belgian_Hospitalisations_COVID-19_4weeks.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(fig_map2,
-          grid.arrange(fig_trends, bottom = caption),
-          ncol = 2, widths = c(1, 1.5)
+  grid.arrange(fig_trends, bottom = caption),
+  ncol = 2, widths = c(1, 1.5)
 )
 dev.off()
-
-
-
-
-
