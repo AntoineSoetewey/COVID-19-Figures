@@ -61,18 +61,18 @@ dat$PROVINCE <- factor(dat$PROVINCE,
 # compute NEW_IN by population size
 dat <- dat %>%
   mutate(population = case_when(
-    PROVINCE == "Antwerpen" ~ 1857986,
-    PROVINCE == "Brabant Wallon" ~ 403599,
-    PROVINCE == "Brussels" ~ 1208542,
-    PROVINCE == "Hainaut" ~ 1344241,
-    PROVINCE == "Liège" ~ 1106992,
-    PROVINCE == "Limburg" ~ 874048,
-    PROVINCE == "Luxembourg" ~ 284638,
-    PROVINCE == "Namur" ~ 494325,
-    PROVINCE == "Oost-Vlaanderen" ~ 1515064,
-    PROVINCE == "Vlaams-Brabant" ~ 1146175,
-    PROVINCE == "West-Vlaanderen" ~ 1195796,
-    PROVINCE == "Belgique/België" ~ 11431406
+    PROVINCE == levels(dat$PROVINCE)[1] ~ 1857986,
+    PROVINCE == levels(dat$PROVINCE)[2] ~ 403599,
+    PROVINCE == levels(dat$PROVINCE)[3] ~ 1208542,
+    PROVINCE == levels(dat$PROVINCE)[4] ~ 1344241,
+    PROVINCE == levels(dat$PROVINCE)[5] ~ 1106992,
+    PROVINCE == levels(dat$PROVINCE)[6] ~ 874048,
+    PROVINCE == levels(dat$PROVINCE)[7] ~ 284638,
+    PROVINCE == levels(dat$PROVINCE)[8] ~ 494325,
+    PROVINCE == levels(dat$PROVINCE)[9] ~ 1515064,
+    PROVINCE == levels(dat$PROVINCE)[10] ~ 1146175,
+    PROVINCE == levels(dat$PROVINCE)[11] ~ 1195796,
+    PROVINCE == levels(dat$PROVINCE)[12] ~ 11431406
   )) %>%
   mutate(NEW_IN_divid = NEW_IN / population * 1000000)
 
@@ -276,14 +276,12 @@ map <- map %>%
 
 map$PROVINCE[c(1, 5)] <- c("Brussels", "Vlaams-Brabant")
 
-
-
 ## agregating data
 dat_ag <- dat %>%
   group_by(PROVINCE) %>%
   summarize(
-    "new_in" = mean(NEW_IN[DATE >= (Sys.Date() - 31)], na.rm = T),
-    "new_in2" = mean(NEW_IN[DATE >= (Sys.Date() - 7)], na.rm = T),
+    "new_in" = mean(NEW_IN[DATE >= (max(dat$DATE) - 29)], na.rm = T),
+    "new_in2" = mean(NEW_IN[DATE >= (max(dat$DATE) - 6)], na.rm = T),
     "population" = max(population, na.rm = T)
   ) %>%
   mutate(
@@ -294,8 +292,6 @@ dat_ag <- dat %>%
       include.lowest = TRUE, labels = c("0.0", "] 0.0, 2.5 ]", "] 2.5, 9.0 ]", "> 9.0")
     )
   )
-
-
 
 map.data <- left_join(map, dat_ag, by = "PROVINCE")
 map.data <- subset(map.data, !PROVINCE %in% "Belgium")
@@ -323,13 +319,14 @@ points <- mutate(points,
 points1 <- subset(points, !PROVINCE %in% "Vlaams-Brabant")
 points2 <- subset(points, PROVINCE %in% "Vlaams-Brabant")
 
+
 period1 <- paste0(
-  "Période / periode : ", format(Sys.Date() - 31, format = "%d/%m"), " - ",
-  format(Sys.Date() - 1, format = "%d/%m"), "   "
+  "Période / periode : ", format(max(dat$DATE) - 30, format = "%d/%m"), " - ",
+  format(max(dat$DATE), format = "%d/%m"), "   "
 )
 period2 <- paste0(
-  "Période / periode : ", format(Sys.Date() - 7, format = "%d/%m"), " - ",
-  format(Sys.Date() - 1, format = "%d/%m"), "   "
+  "Période / periode : ", format(max(dat$DATE) - 6, format = "%d/%m"), " - ",
+  format(max(dat$DATE), format = "%d/%m"), "   "
 )
 
 fig_map2 <- ggplot(map.data) +
