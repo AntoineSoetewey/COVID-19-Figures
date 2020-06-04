@@ -340,7 +340,7 @@ fig_map2 <- ggplot(map.data) +
     data = points1, aes(x = X, y = Y + 0.03, label = PROVINCE, colour = q1), size = 3,
     check_overlap = TRUE
   ) +
-  scale_colour_manual(values = c("black", "white"), guide = FALSE) +
+  scale_colour_manual(values = c("black", "black"), guide = FALSE) +
   geom_text(
     data = points1, aes(x = X, y = Y - 0.03, label = num_2, colour = q1), size = 3,
     check_overlap = TRUE
