@@ -282,13 +282,13 @@ map$PROVINCE[c(1, 5)] <- c("Brussels", "Vlaams-Brabant")
 dat_ag <- dat %>%
   group_by(PROVINCE) %>%
   summarize(
-    "new_in" = sum(NEW_IN[DATE >= (Sys.Date() - 31)], na.rm = T),
-    "new_in2" = sum(NEW_IN[DATE >= (Sys.Date() - 8)], na.rm = T),
+    "new_in" = mean(NEW_IN[DATE >= (Sys.Date() - 31)], na.rm = T),
+    "new_in2" = mean(NEW_IN[DATE >= (Sys.Date() - 7)], na.rm = T),
     "population" = max(population, na.rm = T)
   ) %>%
   mutate(
-    new_in_divid = new_in / population * 100000,
-    new_in_divid2 = new_in2 / population * 100000,
+    new_in_divid = new_in / population * 1000000,
+    new_in_divid2 = new_in2 / population * 1000000,
     class2 = cut(new_in_divid2,
       breaks = c(0, 0.001, 2.5, 9, 100),
       include.lowest = TRUE, labels = c("0.0", "] 0.0, 2.5 ]", "] 2.5, 9.0 ]", "> 9.0")
@@ -328,7 +328,7 @@ period1 <- paste0(
   format(Sys.Date() - 1, format = "%d/%m"), "   "
 )
 period2 <- paste0(
-  "Période / periode : ", format(Sys.Date() - 8, format = "%d/%m"), " - ",
+  "Période / periode : ", format(Sys.Date() - 7, format = "%d/%m"), " - ",
   format(Sys.Date() - 1, format = "%d/%m"), "   "
 )
 
@@ -353,14 +353,12 @@ fig_map2 <- ggplot(map.data) +
     data = points2, aes(x = X + 0.07, y = Y + 0.03, label = num_2), col = "black", size = 3,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.)", bold(.(period2)))))) +
-  # labs(fill=paste0("Admissions hospitalières / \nHospitalisaties (x 100,000 hab./inw.) \n", period1))+
+  labs(fill = bquote(atop(NA, atop("Admissions hospitalières / \nHospitalisaties (x 1,000,000 hab./inw.)", bold(.(period2)))))) +
   theme_void() +
   theme(
     # Change legend
     legend.position = c(0.2, 0.22),
     legend.title = element_text(size = 12, color = "black"),
-    # legend.title = element_text(size = 9, color = "black"),
     legend.text = element_text(color = "black"),
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
