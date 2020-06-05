@@ -34,7 +34,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "BrabantWallon",
     "Brussels",
     "Hainaut",
-    "Liège",
+    unique(dat$PROVINCE)[5],
     "Limburg",
     "Luxembourg",
     "Namur",
@@ -137,9 +137,12 @@ fig_trends <- ggplot(
   geom_hline(
     yintercept = 100 / (11431406 / 1000000),
     linetype = "dashed",
-    color = "darkgrey"
-    # ,
-    #    size=4
+    color = "red"
+  ) +
+  geom_hline(
+    yintercept = 50 / (11431406 / 1000000),
+    linetype = "dashed",
+    color = "steelblue"
   ) +
   geom_segment(
     data = dat_7mean,
@@ -242,11 +245,11 @@ fig_trends <- ggplot(
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Lignes solides : moyennes 7 jours (4 semaines) / Volle lijnen : 7-daags gemiddelde (4 weken) \n * Lignes pointillées : phases de déconfinement / Gestippelde lijnen: fases afbouw lockdown",
+  textGrob(" * Lignes solides : moyennes 7 jours (4 semaines) / Volle lijnen : 7-daags gemiddelde (4 weken) \n * Lignes pointillées : phases de déconfinement / Gestippelde lijnen : fases afbouw lockdown \n * Lignes rouge et bleue : seuils de 100 et 50 cas par jour / Rode en blauwe lijnen : drempels van 100 en 50 gevallen per dag",
     x = 0, hjust = 0, vjust = 0,
     gp = gpar(col = "darkgray", fontsize = 7, lineheight = 0.8)
   ),
-  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
+  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data : https://epistat.wiv-isp.be/covid/  ",
     x = 1, hjust = 1, vjust = 0,
     gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
   ),
