@@ -111,6 +111,19 @@ dat_14mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t14, mean)
 dat_21mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t21, mean)
 dat_28mean <- aggregate(NEW_IN_divid ~ PROVINCE, dat_t28, mean)
 
+# create arrows
+x1 <- c(max(dat$DATE) - 23, max(dat$DATE) - 16, max(dat$DATE) - 9)
+x2 <- c(max(dat$DATE) - 18, max(dat$DATE) - 11, max(dat$DATE) - 4)
+
+df <- data.frame(x1 = rep(x1, 12),
+                 x2 = rep(x2, 12),
+                 y1 = 10,
+                 y2 = sample(c(8, 10, 12), size = 36, replace = TRUE))
+
+df$PROVINCE <- c(rep(levels(dat$PROVINCE), each = 3))
+
+df$color <- ifelse(df$y2 > df$y1, "red", ifelse(df$y2 == df$y1, "orange", "darkgreen"))
+
 # Create plot in dutch/fr
 fig_trends <- ggplot(
   subset(dat2, DATE >= "2020-05-02"), # subset data from May 3
@@ -123,21 +136,14 @@ fig_trends <- ggplot(
   labs(x = "", y = "Nombre d'hospitalisations (par 1,000,000 habitants) / Hospitalisaties (per 1,000,000 inwoners)") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE),
-    scales = "free"
+             scales = "free"
   ) +
-  # geom_vline(
-  #   xintercept = as.Date("2020-05-11"), linetype = "dashed",
-  #   color = "darkgrey", size = 0.5
-  # ) +
-  # geom_text(aes(x = as.Date("2020-05-11"), label = "1b", y = 2 * 10),
-  #   colour = "darkgrey", hjust = -0.1,
-  # ) +
   geom_vline(
     xintercept = as.Date("2020-05-18"), linetype = "dashed",
     color = "darkgrey", size = 0.5
   ) +
   geom_text(aes(x = as.Date("2020-05-18"), label = "2", y = 2 * 10),
-    colour = "darkgrey", hjust = -0.1,
+            colour = "darkgrey", hjust = -0.1,
   ) +
   geom_vline(
     xintercept = as.Date("2020-06-8"), linetype = "dashed",
@@ -256,9 +262,11 @@ fig_trends <- ggplot(
     color = "darkgrey",
     size = 4,
     fontface = "bold"
-  )
+  ) +
+  geom_segment(aes(x = x1, y = y1, xend = x2, yend = y2), arrow=arrow(), size=1, color=df$color, data = df)
 
 # fig_trends
+
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
