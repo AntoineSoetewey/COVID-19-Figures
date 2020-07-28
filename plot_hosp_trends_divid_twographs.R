@@ -134,8 +134,13 @@ fig_trends <- ggplot(
   ) +
   annotate("rect",
     ymin = -Inf, ymax = Inf,
-    xmin = as.Date("2020-06-01"), xmax = as.Date("2020-06-05"),
+    xmin = as.Date("2020-06-01"), xmax = as.Date("2020-07-01"),
     alpha = .05
+  ) +
+  annotate("rect",
+    ymin = -Inf, ymax = Inf,
+    xmin = as.Date("2020-07-01"), xmax = as.Date("2020-08-01"),
+    alpha = .2
   ) +
   labs(
     title = "Evolution des admissions hospitalières / Evolutie van de hospitalisaties - COVID-19"
