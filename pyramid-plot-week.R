@@ -42,6 +42,10 @@ dat <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 # cases per week
 dat$CASES <- dat$CASES / nweeks
 
+# create limits for number of cases for all periods
+lower_limit <- -500
+upper_limit <- 600
+
 # Create plots in engl
 p1 <- ggplot(data = dat) +
   geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
@@ -53,8 +57,9 @@ p1 <- ggplot(data = dat) +
     subset(dat, SEX == "Male")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100),
-    labels = abs(seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100))
+    limits = c(lower_limit, upper_limit),
+    breaks = seq(lower_limit, upper_limit, 200),
+    labels = abs(seq(lower_limit, upper_limit, 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -63,7 +68,7 @@ p1 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     # caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases per week"
+    y = "Number of cases per week"
   ) +
   theme(
     legend.position = c(.95, .15),
@@ -74,7 +79,6 @@ p1 <- ggplot(data = dat) +
     plot.title = element_text(face = "bold"),
     plot.subtitle = element_text(face = "bold")
   )
-# + ylim(-400, 600)
 
 p1
 
@@ -101,8 +105,9 @@ p2 <- ggplot(data = dat) +
     subset(dat, SEX == "Male")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100),
-    labels = abs(seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100))
+    limits = c(lower_limit, upper_limit),
+    breaks = seq(lower_limit, upper_limit, 200),
+    labels = abs(seq(lower_limit, upper_limit, 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -110,19 +115,18 @@ p2 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     # caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases per week"
+    y = "Number of cases per week"
   ) +
   theme(
     legend.position = "none",
     plot.subtitle = element_text(face = "bold")
   )
-# + ylim(-400, 600)
 
 p2
 
 # subset for period
 start <- as.Date("2020-09-01")
-end <- Sys.Date()
+end <- as.Date(max(dat_all$DATE, na.rm = TRUE))
 dat <- subset(dat_all, DATE >= start & DATE <= end)
 nweeks <- as.numeric(end - start) / 7
 
@@ -143,8 +147,9 @@ p3 <- ggplot(data = dat) +
     subset(dat, SEX == "Male")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100),
-    labels = abs(seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 100))
+    limits = c(lower_limit, upper_limit),
+    breaks = seq(lower_limit, upper_limit, 200),
+    labels = abs(seq(lower_limit, upper_limit, 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -152,18 +157,17 @@ p3 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases per week"
+    y = "Number of cases per week"
   ) +
   theme(
     legend.position = "none",
     plot.subtitle = element_text(face = "bold")
   )
-# + ylim(-400, 600)
 
 p3
 
 p1 + p2 + p3
 
 # save plot
-ggsave("pyramid-plot-week.png")
+ggsave("pyramid-plot-week-limit.png")
 # ggsave("pyramid-plot-week.pdf")

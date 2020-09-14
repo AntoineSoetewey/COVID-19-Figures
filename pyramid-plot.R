@@ -59,7 +59,7 @@ p1 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     # caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases"
+    y = "Number of cases"
   ) +
   theme(
     legend.position = c(.95, .15),
@@ -101,7 +101,7 @@ p2 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     # caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases"
+    y = "Number of cases"
   ) +
   theme(
     legend.position = "none",
@@ -112,7 +112,7 @@ p2
 
 # subset for period
 start <- as.Date("2020-09-01")
-end <- Sys.Date()
+end <- as.Date(max(dat_all$DATE, na.rm = TRUE))
 dat <- subset(dat_all, DATE >= start & DATE <= end)
 
 # aggregate new cases by province and date
@@ -138,7 +138,7 @@ p3 <- ggplot(data = dat) +
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "No. of cases"
+    y = "Number of cases"
   ) +
   theme(
     legend.position = "none",
