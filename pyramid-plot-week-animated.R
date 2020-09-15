@@ -134,7 +134,7 @@ gif <-
   coord_flip() +
   theme_minimal() +
   labs(
-    title = "COVID-19 cases by age group and sex per 100 000 in Belgium",
+    title = "Age and sex specific incidence per 100 000 of COVID19 cases in Belgium",
     subtitle = "Rolling 7 days window: {closest_state}",
     caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
