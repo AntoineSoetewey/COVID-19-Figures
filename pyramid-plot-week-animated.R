@@ -138,7 +138,7 @@ gif <-
     subtitle = "Rolling 7 days window: {closest_state}",
     caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
     x = "Age group",
-    y = "Number of cases per week per 100 000") +
+    y = "Number of cases per week per 100 000 individuals") +
   scale_y_continuous(
     # limits = c(lower_limit, upper_limit),
     breaks = seq(lower_limit, upper_limit, 1000),
