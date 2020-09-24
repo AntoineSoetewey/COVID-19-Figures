@@ -77,19 +77,19 @@ dat <- dat %>%
   mutate(NEW_IN_divid = NEW_IN / population * 100000)
 
 
-# Create plot in dutch/fr
+# Create plot in english
 fig_trends <- ggplot(
-  subset(dat, DATE >= "2020-08-01"),
+  subset(dat, DATE >= "2020-08-01" & PROVINCE != "Belgique/België"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
   geom_point(
     size = 1L,
     colour = "steelblue"
   ) +
-  labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants) / Hospitalisaties (per 100,000 inwoners)") +
+  labs(x = "", y = "Number of hospitalisations (per 100,00 inhabitants)") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE),
-    scales = "free"
+             scales = "free"
   ) +
   geom_smooth(
     se = FALSE,
@@ -98,45 +98,67 @@ fig_trends <- ggplot(
     formula = y ~ s(x)
   ) +
   annotate("rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = as.Date("2020-08-01"), xmax = as.Date("2020-09-01"),
-    alpha = .2
+           ymin = -Inf, ymax = Inf,
+           xmin = as.Date("2020-08-01"), xmax = as.Date("2020-09-01"),
+           alpha = .2
   ) +
   annotate("rect",
-    ymin = -Inf, ymax = Inf,
-    xmin = as.Date("2020-09-01"), xmax = as.Date("2020-10-01"),
-    alpha = .05
+           ymin = -Inf, ymax = Inf,
+           xmin = as.Date("2020-09-01"), xmax = as.Date("2020-10-01"),
+           alpha = .05
   ) +
-  # annotate("rect",
-  #   ymin = -Inf, ymax = Inf,
-  #   xmin = as.Date("2020-05-01"), xmax = as.Date("2020-06-01"),
-  #   alpha = .2
-  # ) +
-  # annotate("rect",
-  #   ymin = -Inf, ymax = Inf,
-  #   xmin = as.Date("2020-06-01"), xmax = as.Date("2020-07-01"),
-  #   alpha = .05
-  # ) +
-  # annotate("rect",
-  #   ymin = -Inf, ymax = Inf,
-  #   xmin = as.Date("2020-07-01"), xmax = as.Date("2020-08-01"),
-  #   alpha = .2
-  # ) +
   labs(
-    title = "Evolution des admissions hospitalières / Evolutie van de hospitalisaties - COVID-19"
+    title = " "
   ) +
   scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 1), limits = c(0, 1.5)) +
   scale_x_date(labels = date_format("%d-%m"))
 
+# Create plot in english
+fig_trends_bel <- ggplot(
+  subset(dat, DATE >= "2020-08-01" & PROVINCE == "Belgique/België"),
+  aes(x = DATE, y = NEW_IN_divid)
+) +
+  geom_point(
+    size = 1L,
+    colour = "steelblue"
+  ) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  facet_wrap(vars(PROVINCE),
+             scales = "free"
+  ) +
+  geom_smooth(
+    se = FALSE,
+    col = "grey",
+    method = "gam",
+    formula = y ~ s(x)
+  ) +
+  annotate("rect",
+           ymin = -Inf, ymax = Inf,
+           xmin = as.Date("2020-08-01"), xmax = as.Date("2020-09-01"),
+           alpha = .2
+  ) +
+  annotate("rect",
+           ymin = -Inf, ymax = Inf,
+           xmin = as.Date("2020-09-01"), xmax = as.Date("2020-10-01"),
+           alpha = .05
+  ) +
+  labs(
+    title = "Evolution of hospital admissions - COVID-19"
+  ) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 1), limits = c(0, 1.5)) +
+  scale_x_date(labels = date_format("%d-%m")) +
+  theme(panel.border = element_rect(colour = "steelblue", fill = NA, size = 3))
+
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(" * Lignes solides : courbes ajustées aux observations / Volle lijnen : gefitte curves \n * Lignes pointillées : phases de déconfinement 1a, 1b & 2 / Gestippelde lijnen: fases afbouw lockdown maatregelen 1a, 1b & 2",
-    x = 0, hjust = 0, vjust = 0,
-    gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
+  textGrob("* Solid lines: curves fitted to observations",
+           x = 0, hjust = 0, vjust = 0,
+           gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
   ),
   textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
-    x = 1, hjust = 1, vjust = 0,
-    gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
+           x = 1, hjust = 1, vjust = 0,
+           gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
   ),
   cl = "ann"
 )
@@ -264,12 +286,13 @@ fig_map2 <- ggplot(map.data) +
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
 
-
+empty_plot <- ggplot() + theme_void()
 
 # save plot
 png(file = "Belgian_Hospitalisations_COVID-19_augsept.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(fig_map1, fig_map2, ncol = 1),
+  grid.arrange(fig_trends_bel, empty_plot, empty_plot),
   grid.arrange(fig_trends, bottom = caption),
-  ncol = 2, widths = c(1, 1.5)
+  ncol = 3, widths = c(1, 0.5, 1.5)
 )
 dev.off()
