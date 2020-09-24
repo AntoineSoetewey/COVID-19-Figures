@@ -56,7 +56,7 @@ dat$PROVINCE <- factor(dat$PROVINCE,
     "Namur",
     "Oost-Vlaanderen",
     "West-Vlaanderen",
-    "Belgique/België"
+    "Belgium"
   )
 )
 
@@ -72,14 +72,14 @@ dat <- dat %>%
     PROVINCE == "Namur" ~ 494325,
     PROVINCE == "Oost-Vlaanderen" ~ 1515064,
     PROVINCE == "West-Vlaanderen" ~ 1195796,
-    PROVINCE == "Belgique/België" ~ 11431406
+    PROVINCE == "Belgium" ~ 11431406
   )) %>%
   mutate(NEW_IN_divid = NEW_IN / population * 100000)
 
 
 # Create plot in english
 fig_trends <- ggplot(
-  subset(dat, DATE >= "2020-08-01" & PROVINCE != "Belgique/België"),
+  subset(dat, DATE >= "2020-06-21" & PROVINCE != "Belgium"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
   geom_point(
@@ -97,15 +97,17 @@ fig_trends <- ggplot(
     method = "gam",
     formula = y ~ s(x)
   ) +
-  annotate("rect",
-           ymin = -Inf, ymax = Inf,
-           xmin = as.Date("2020-08-01"), xmax = as.Date("2020-09-01"),
-           alpha = .2
+  geom_vline(
+    xintercept = as.Date("2020-07-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
   ) +
-  annotate("rect",
-           ymin = -Inf, ymax = Inf,
-           xmin = as.Date("2020-09-01"), xmax = as.Date("2020-10-01"),
-           alpha = .05
+  geom_vline(
+    xintercept = as.Date("2020-08-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
+  ) +
+  geom_vline(
+    xintercept = as.Date("2020-09-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
   ) +
   labs(
     title = " "
@@ -115,7 +117,7 @@ fig_trends <- ggplot(
 
 # Create plot in english
 fig_trends_bel <- ggplot(
-  subset(dat, DATE >= "2020-08-01" & PROVINCE == "Belgique/België"),
+  subset(dat, DATE >= "2020-06-21" & PROVINCE == "Belgium"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
   geom_point(
@@ -133,15 +135,17 @@ fig_trends_bel <- ggplot(
     method = "gam",
     formula = y ~ s(x)
   ) +
-  annotate("rect",
-           ymin = -Inf, ymax = Inf,
-           xmin = as.Date("2020-08-01"), xmax = as.Date("2020-09-01"),
-           alpha = .2
+  geom_vline(
+    xintercept = as.Date("2020-07-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
   ) +
-  annotate("rect",
-           ymin = -Inf, ymax = Inf,
-           xmin = as.Date("2020-09-01"), xmax = as.Date("2020-10-01"),
-           alpha = .05
+  geom_vline(
+    xintercept = as.Date("2020-08-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
+  ) +
+  geom_vline(
+    xintercept = as.Date("2020-09-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
   ) +
   labs(
     title = "Evolution of hospital admissions - COVID-19"
