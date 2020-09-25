@@ -155,7 +155,7 @@ dat_ag <- filter(dat, PROVINCE != "Belgium") %>%
   group_by(PROVINCE) %>%
   summarize(
     "per1" = sum(NEW_IN_divid[DATE >= as.Date("2020-03-25") & DATE <= as.Date("2020-04-07")], na.rm = T) / 14,
-    "per2" = sum(NEW_IN_divid[DATE >= (max(dat$DATE) - 13) & DATE <= max(dat$DATE)], na.rm = T) / 14
+    "per2" = sum(NEW_IN_divid[DATE >= (max(dat$DATE) - 14) & DATE <= max(dat$DATE)], na.rm = T) / 14
   )
 
 
