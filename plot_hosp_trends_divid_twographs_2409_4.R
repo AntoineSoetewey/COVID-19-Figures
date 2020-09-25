@@ -144,9 +144,9 @@ library(GADMTools)
 library(RColorBrewer)
 library(tmap)
 
-maxi<-max(dat$DATE)
-mini<-max(dat$DATE)-13
-divi<-length(mini:maxi)
+maxi <- max(dat$DATE)
+mini <- max(dat$DATE) - 13
+divi <- length(mini:maxi)
 
 # agregated data to join with the map
 # calculating the daily rate in two periods :
@@ -157,7 +157,8 @@ dat_ag <- filter(dat, PROVINCE != "Belgium") %>%
   group_by(PROVINCE) %>%
   summarize(
     "per1" = sum(NEW_IN_divid[DATE >= as.Date("2020-03-25") & DATE <= as.Date("2020-04-07")], na.rm = T) / 14,
-    "per2" = sum(NEW_IN_divid[DATE >= mini & DATE <= maxi], na.rm = T) / divi)
+    "per2" = sum(NEW_IN_divid[DATE >= mini & DATE <= maxi], na.rm = T) / divi
+  )
 
 
 ## sf structure
