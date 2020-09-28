@@ -50,11 +50,11 @@ dat <- rbind(dat, belgium) %>%
                       PROVINCE == "Belgium" ~ 11431406), 
           NEW_IN_divid = NEW_IN / population * 100000)
 
-
+dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
 
 # Create plot in english
 fig_trends <- ggplot(
-  subset(dat, DATE >= "2020-06-21" & PROVINCE != "Belgium"),
+  subset(dat, DATE >= "2020-06-21"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
   annotate("rect",
@@ -82,7 +82,8 @@ fig_trends <- ggplot(
   labs(x = "", y = "Number of hospitalisations (per 100,00 inhabitants)") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE),
-             scales = "free"
+             scales = "free",
+             ncol = 2
   ) +
   geom_smooth(
     se = FALSE,
@@ -107,63 +108,6 @@ fig_trends <- ggplot(
   ) +
   scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 0.5), limits = c(0, 1.5)) +
   scale_x_date(labels = date_format("%d-%m"))
-
-# Create plot in english
-fig_trends_bel <- ggplot(
-  subset(dat, DATE >= "2020-06-21" & PROVINCE == "Belgium"),
-  aes(x = DATE, y = NEW_IN_divid)
-) +
-  annotate("rect",
-           ymin = 0, ymax = 0.5,
-           xmin = as.Date(-Inf), xmax = as.Date(Inf),
-           alpha = .05,
-           fill = "gold"
-  ) +
-  annotate("rect",
-           ymin = 0.5, ymax = 1,
-           xmin = as.Date(-Inf), xmax = as.Date(Inf),
-           alpha = .2,
-           fill = "orange"
-  ) +
-  annotate("rect",
-           ymin = 1, ymax = Inf,
-           xmin = as.Date(-Inf), xmax = as.Date(Inf),
-           alpha = .2,
-           fill = "red"
-  ) +
-  geom_point(
-    size = 1L,
-    colour = "steelblue"
-  ) +
-  labs(x = "", y = "") +
-  theme_minimal() +
-  facet_wrap(vars(PROVINCE),
-             scales = "free"
-  ) +
-  geom_smooth(
-    se = FALSE,
-    col = "grey",
-    method = "gam",
-    formula = y ~ s(x)
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-07-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-08-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-09-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  labs(
-    title = "Evolution of hospital admissions - COVID-19"
-  ) +
-  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 0.5), limits = c(0, 1.5)) +
-  scale_x_date(labels = date_format("%d-%m")) +
-  theme(panel.border = element_rect(colour = "steelblue", fill = NA, size = 3))
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
@@ -295,11 +239,10 @@ map2 <- ggplot(map) +
     plot.margin = unit(c(+0.2, 0, -0.5, 3), "cm")
   )
 
-
 # save plot
-png(file = "Belgian_Hospitalisations_2409.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalisations_2409_2col.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(map1, map2, ncol = 1),
-  grid.arrange(fig_trends, bottom = caption),
-  ncol = 2, widths = c(1, 1.5)
+          grid.arrange(fig_trends, bottom = caption),
+          ncol = 2, widths = c(1, 1.5)
 )
 dev.off()

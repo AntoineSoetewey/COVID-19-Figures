@@ -57,6 +57,24 @@ fig_trends <- ggplot(
   subset(dat, DATE >= "2020-06-21" & PROVINCE != "Belgium"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
+  annotate("rect",
+           ymin = 0, ymax = 0.5,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .05,
+           fill = "gold"
+  ) +
+  annotate("rect",
+           ymin = 0.5, ymax = 1,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .2,
+           fill = "orange"
+  ) +
+  annotate("rect",
+           ymin = 1, ymax = Inf,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .2,
+           fill = "red"
+  ) +
   geom_point(
     size = 1L,
     colour = "steelblue"
@@ -87,7 +105,7 @@ fig_trends <- ggplot(
   labs(
     title = " "
   ) +
-  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 1), limits = c(0, 1.5)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 0.5), limits = c(0, 1.5)) +
   scale_x_date(labels = date_format("%d-%m"))
 
 # Create plot in english
@@ -95,6 +113,24 @@ fig_trends_bel <- ggplot(
   subset(dat, DATE >= "2020-06-21" & PROVINCE == "Belgium"),
   aes(x = DATE, y = NEW_IN_divid)
 ) +
+  annotate("rect",
+           ymin = 0, ymax = 0.5,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .05,
+           fill = "gold"
+  ) +
+  annotate("rect",
+           ymin = 0.5, ymax = 1,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .2,
+           fill = "orange"
+  ) +
+  annotate("rect",
+           ymin = 1, ymax = Inf,
+           xmin = as.Date(-Inf), xmax = as.Date(Inf),
+           alpha = .2,
+           fill = "red"
+  ) +
   geom_point(
     size = 1L,
     colour = "steelblue"
@@ -123,11 +159,11 @@ fig_trends_bel <- ggplot(
     color = "lightgrey", size = 0.5
   ) +
   labs(
-    title = "Evolution of hospital admissions - COVID-19"
+    title = "Evolution of hospital admissions in Belgium - COVID-19"
   ) +
-  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 1), limits = c(0, 1.5)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 0.5), limits = c(0, 1.5)) +
   scale_x_date(labels = date_format("%d-%m")) +
-  theme(panel.border = element_rect(colour = "steelblue", fill = NA, size = 3))
+  theme(panel.border = element_rect(colour = "steelblue", fill = NA, size = 2))
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
@@ -222,7 +258,7 @@ map1 <- ggplot(map) +
     check_overlap = TRUE
   ) +
   
-  labs(fill = bquote(atop(NA, atop("Hospital admissions (x100,000 inhabitants)", bold(.(period1)))))) +
+  labs(fill = bquote(atop(NA, atop("Hospitalisations (x100,000 inhabitants)", bold(.(period1)))))) +
   theme_void() +
   theme(
     # Change legend
@@ -248,7 +284,7 @@ map2 <- ggplot(map) +
     check_overlap = TRUE
   ) +
   
-  labs(fill = bquote(atop(NA, atop("Hospital admissions (x100,000 inhabitants)", bold(.(period2)))))) +
+  labs(fill = bquote(atop(NA, atop("Hospitalisations (x100,000 inhabitants)", bold(.(period2)))))) +
   theme_void() +
   theme(
     # Change legend
