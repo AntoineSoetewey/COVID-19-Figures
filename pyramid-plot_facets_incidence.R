@@ -16,6 +16,76 @@ library(ggpol)
 library(reshape2)
 library(XML)
 library(patchwork)
+library(stringr)
+
+
+# structure of the population
+pop <- read.csv("TF_SOC_POP_STRUCT_2020.txt",
+                    sep = ";",
+                    stringsAsFactors = FALSE
+)
+
+# add brussels as a province
+pop$PROVINCE <- ifelse(pop$TX_ADM_DSTR_DESCR_FR == "Arrondissement de Bruxelles-Capitale",
+                       "Provincie Brussels",
+                       pop$TX_PROV_DESCR_NL)
+
+# extract province names
+pop <- mutate(pop, PROVINCE = as.factor(sapply(strsplit(PROVINCE, split=' ', fixed=TRUE),function(x) (x[2])))) %>%
+  select(PROVINCE, CD_AGE, CD_SEX, MS_POPULATION) %>% 
+  rename(AGE = CD_AGE,
+         SEX = CD_SEX,
+         POPULATION = MS_POPULATION)
+
+## Recoding pop$PROVINCE
+pop$PROVINCE <- recode_factor(pop$PROVINCE,
+                                  "Henegouwen" = "Hainaut",
+                                  "Luik" = "Liège",
+                                  "Luxemburg" = "Luxembourg",
+                                  "Namen" = "Namur",
+                                  "Vlaams-Brabant" = "Brabant",
+                                  "Waals-Brabant" = "Brabant",
+                                  "Brussels" = "Brabant"
+)
+
+
+## Cutting AGE into AGEGROUP and rename factors
+pop$AGEGROUP <- cut(pop$AGE,
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 120)
+)
+pop$AGEGROUP <- recode_factor(pop$AGEGROUP,
+                                 "[0,10)" = "0-9",
+                                 "[10,20)" = "10-19",
+                                 "[20,30)" = "20-29",
+                                 "[30,40)" = "30-39",
+                                 "[40,50)" = "40-49",
+                                 "[50,60)" = "50-59",
+                                 "[60,70)" = "60-69",
+                                 "[70,80)" = "70-79",
+                                 "[80,90)" = "80-89",
+                                 "[90,120]" = "90+"
+)
+
+pop <- aggregate(POPULATION ~ AGEGROUP + SEX + PROVINCE, pop, sum) %>%
+  select(PROVINCE, AGEGROUP, SEX, POPULATION)
+
+# add new intakes for Belgium as a whole
+belgium <- aggregate(POPULATION ~ AGEGROUP + SEX, pop, sum) %>%
+  mutate(PROVINCE = "Belgium") %>% 
+  select(PROVINCE, AGEGROUP, SEX, POPULATION)
+
+# bind population by province and belgium
+pop_all <- rbind(pop, belgium)
+
+# SEX as factor
+pop_all$SEX <- factor(pop_all$SEX, labels = c("Women", "Men"))
+
+
+
+
+
 
 # import Sciensano hospitalisations data
 dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
@@ -47,25 +117,13 @@ belgium <- aggregate(CASES ~ DATE + AGEGROUP + SEX, dat, sum) %>%
   mutate(PROVINCE = "Belgium") %>%
   select(DATE, PROVINCE, AGEGROUP, SEX, CASES)
 
-##
-dat_all <- rbind(dat, belgium) %>%
-  mutate(
-    population = case_when(
-      PROVINCE == "Antwerpen" ~ 1857986,
-      PROVINCE == "Brabant" ~ 403599 + 1208542 + 1146175,
-      PROVINCE == "Hainaut" ~ 1344241,
-      PROVINCE == "Liège" ~ 1106992,
-      PROVINCE == "Limburg" ~ 874048,
-      PROVINCE == "Luxembourg" ~ 284638,
-      PROVINCE == "Namur" ~ 494325,
-      PROVINCE == "Oost-Vlaanderen" ~ 1515064,
-      PROVINCE == "West-Vlaanderen" ~ 1195796,
-      PROVINCE == "Belgium" ~ 11431406
-    ),
-    CASES_divid = CASES / population * 100000
-  )
-dat_all <- dat_all[!is.na(dat_all$AGEGROUP), ]
+## bind and merge
+dat_all <- rbind(dat, belgium)
 
+dat_all <- merge(dat_all, pop_all)
+
+# add incidence per 100,000
+dat_all$CASES_divid <- 1e5 * dat_all$CASES / dat_all$POPULATION
 
 
 # subset for period and province
@@ -73,21 +131,22 @@ start <- as.Date("2020-03-01")
 end <- as.Date("2020-05-31")
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
+lab <- aggregate(CASES_divid ~ AGEGROUP + SEX, dat, sum)
 
 # plot for Belgium
 bel_p1 <- ggplot(data = dat) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 2000),
-    labels = abs(seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 2000))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -95,7 +154,7 @@ bel_p1 <- ggplot(data = dat) +
     title = "Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = c(.95, .15),
@@ -115,32 +174,33 @@ bel_p1 <- ggplot(data = dat) +
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
+limit <- 5000
 
 pro_p1 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 500, f = ceiling), round_any(max(lab$CASES), 500, f = ceiling), 500),
-    labels = abs(seq(-round_any(max(lab$CASES), 500, f = ceiling), round_any(max(lab$CASES), 500, f = ceiling), 500))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-limit, limit, 5000),
+    labels = abs(seq(-limit, limit, 5000))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
-    title = "Axe and sex specific COVID-19 cases in Belgium",
+    title = "Age and sex specific COVID-19 cases per 100,000 inhabitants in Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = "none",
@@ -160,21 +220,20 @@ start <- as.Date("2020-06-01")
 end <- as.Date("2020-08-31")
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
-
 # plot for Belgium
 bel_p2 <- ggplot(data = dat) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 500),
-    labels = abs(seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 500))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -182,7 +241,7 @@ bel_p2 <- ggplot(data = dat) +
     title = "",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = "none",
@@ -197,31 +256,30 @@ bel_p2 <- ggplot(data = dat) +
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
-
 pro_p2 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 300, f = ceiling), round_any(max(lab$CASES), 300, f = ceiling), 300),
-    labels = abs(seq(-round_any(max(lab$CASES), 300, f = ceiling), round_any(max(lab$CASES), 300, f = ceiling), 300))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-limit, limit, 5000),
+    labels = abs(seq(-limit, limit, 5000))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = "none",
@@ -241,21 +299,20 @@ start <- as.Date("2020-09-01")
 end <- as.Date(max(dat_all$DATE, na.rm = TRUE))
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
-
 # plot for Belgium
 bel_p3 <- ggplot(data = dat) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 1000),
-    labels = abs(seq(-round_any(max(lab$CASES), 1000, f = ceiling), round_any(max(lab$CASES), 1000, f = ceiling), 1000))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -263,7 +320,7 @@ bel_p3 <- ggplot(data = dat) +
     title = "",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = "none",
@@ -287,31 +344,30 @@ caption <- grobTree(
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
 
-lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
-
 pro_p3 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
-  geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Women")
   ) +
-  geom_bar(aes(AGEGROUP, -CASES, group = SEX, fill = SEX),
+  geom_bar(aes(AGEGROUP, -CASES_divid, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(lab$CASES), 500, f = ceiling), round_any(max(lab$CASES), 500, f = ceiling), 500),
-    labels = abs(seq(-round_any(max(lab$CASES), 500, f = ceiling), round_any(max(lab$CASES), 500, f = ceiling), 500))
+    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
+    breaks = seq(-limit, limit, 5000),
+    labels = abs(seq(-limit, limit, 5000))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases"
+    y = "Number of cases per 100,000 inhabitants"
   ) +
   theme(
     legend.position = "none",

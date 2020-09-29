@@ -67,7 +67,6 @@ dat_all <- rbind(dat, belgium) %>%
 dat_all <- dat_all[!is.na(dat_all$AGEGROUP), ]
 
 
-
 # subset for period and province
 start <- as.Date("2020-03-01")
 end <- as.Date("2020-05-31")
@@ -119,7 +118,7 @@ lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 
 pro_p1 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
   geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
@@ -201,7 +200,7 @@ lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 
 pro_p2 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
   geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
@@ -291,7 +290,7 @@ lab <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 
 pro_p3 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
-    scales = "free",
+    scales = "fixed",
     ncol = 9
   ) +
   geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
