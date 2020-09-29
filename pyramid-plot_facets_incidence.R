@@ -130,6 +130,10 @@ dat_all$CASES_divid <- 1e5 * dat_all$CASES / dat_all$POPULATION
 start <- as.Date("2020-03-01")
 end <- as.Date("2020-05-31")
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
+nweeks <- as.numeric(end - start) / 7
+
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
 
 lab <- aggregate(CASES_divid ~ AGEGROUP + SEX, dat, sum)
 
@@ -144,9 +148,9 @@ bel_p1 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
-    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
+    limits = c(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -154,7 +158,7 @@ bel_p1 <- ggplot(data = dat) +
     title = "Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = c(.95, .15),
@@ -173,8 +177,12 @@ bel_p1 <- ggplot(data = dat) +
 
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
+nweeks <- as.numeric(end - start) / 7
 
-limit <- 5000
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
+
+limit <- 650
 
 pro_p1 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
@@ -190,17 +198,17 @@ pro_p1 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-limit, limit, 5000),
-    labels = abs(seq(-limit, limit, 5000))
+    limits = c(-limit, limit),
+    breaks = seq(-500, 500, 500),
+    labels = abs(seq(-500, 500, 500))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
-    title = "Age and sex specific COVID-19 cases per 100,000 inhabitants in Belgium",
+    title = "Age and sex specific COVID-19 cases per 100,000 inhabitants per week in Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = "none",
@@ -219,6 +227,10 @@ pro_p1 <- ggplot(data = dat) +
 start <- as.Date("2020-06-01")
 end <- as.Date("2020-08-31")
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
+nweeks <- as.numeric(end - start) / 7
+
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
 
 # plot for Belgium
 bel_p2 <- ggplot(data = dat) +
@@ -231,9 +243,9 @@ bel_p2 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
-    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
+    limits = c(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -241,7 +253,7 @@ bel_p2 <- ggplot(data = dat) +
     title = "",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = "none",
@@ -255,6 +267,10 @@ bel_p2 <- ggplot(data = dat) +
 
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
+nweeks <- as.numeric(end - start) / 7
+
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
 
 pro_p2 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
@@ -270,16 +286,16 @@ pro_p2 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-limit, limit, 5000),
-    labels = abs(seq(-limit, limit, 5000))
+    limits = c(-limit, limit),
+    breaks = seq(-500, 500, 500),
+    labels = abs(seq(-500, 500, 500))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = "none",
@@ -298,6 +314,10 @@ pro_p2 <- ggplot(data = dat) +
 start <- as.Date("2020-09-01")
 end <- as.Date(max(dat_all$DATE, na.rm = TRUE))
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE == "Belgium")
+nweeks <- as.numeric(end - start) / 7
+
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
 
 # plot for Belgium
 bel_p3 <- ggplot(data = dat) +
@@ -310,9 +330,9 @@ bel_p3 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000),
-    labels = abs(seq(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling), 2000))
+    limits = c(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling)),
+    breaks = seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200),
+    labels = abs(seq(-round_any(max(lab$CASES_divid), 100, f = ceiling), round_any(max(lab$CASES_divid), 100, f = ceiling), 200))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -320,7 +340,7 @@ bel_p3 <- ggplot(data = dat) +
     title = "",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = "none",
@@ -343,6 +363,10 @@ caption <- grobTree(
 
 ## plots for provinces
 dat <- subset(dat_all, DATE >= start & DATE <= end & PROVINCE != "Belgium")
+nweeks <- as.numeric(end - start) / 7
+
+# cases per week
+dat$CASES_divid <- dat$CASES_divid / nweeks
 
 pro_p3 <- ggplot(data = dat) +
   facet_wrap(vars(PROVINCE),
@@ -358,16 +382,16 @@ pro_p3 <- ggplot(data = dat) +
     subset(dat, SEX == "Men")
   ) +
   scale_y_continuous(
-    limits = c(-round_any(max(lab$CASES_divid), 1000, f = ceiling), round_any(max(lab$CASES_divid), 1000, f = ceiling)),
-    breaks = seq(-limit, limit, 5000),
-    labels = abs(seq(-limit, limit, 5000))
+    limits = c(-limit, limit),
+    breaks = seq(-500, 500, 500),
+    labels = abs(seq(-500, 500, 500))
   ) +
   coord_flip() +
   theme_minimal() +
   labs(
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     x = "Age group",
-    y = "Number of cases per 100,000 inhabitants"
+    y = "Number of cases per 100,000 inhabitants per week"
   ) +
   theme(
     legend.position = "none",
