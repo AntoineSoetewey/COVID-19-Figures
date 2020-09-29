@@ -100,7 +100,7 @@ p2 <- ggplot(data = dat) +
   labs( # title = "COVID-19 cases in Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     # caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
-    x = "Age group",
+    x = "",
     y = "Number of cases"
   ) +
   theme(
@@ -129,15 +129,15 @@ p3 <- ggplot(data = dat) +
     subset(dat, SEX == "Male")
   ) +
   scale_y_continuous(
-    breaks = seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 200),
-    labels = abs(seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 200))
+    breaks = seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 1000),
+    labels = abs(seq(-round_any(max(dat$CASES), 100, f = ceiling), round_any(max(dat$CASES), 100, f = ceiling), 1000))
   ) +
   coord_flip() +
   theme_minimal() +
   labs( # title = "COVID-19 cases in Belgium",
     subtitle = paste0(format(start, format = "%d/%m/%Y"), " - ", format(end, format = "%d/%m/%Y")),
     caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) \n Data: https://epistat.wiv-isp.be/covid/",
-    x = "Age group",
+    x = "",
     y = "Number of cases"
   ) +
   theme(
