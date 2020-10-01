@@ -19,9 +19,10 @@ library(patchwork)
 library(stringr)
 
 
+
 # structure of the population
-pop <- read.csv("TF_SOC_POP_STRUCT_2020.txt",
-  sep = ";",
+pop <- read.csv("TF_SOC_POP_STRUCT_2020.txt", 
+  sep = ";", 
   stringsAsFactors = FALSE
 )
 
@@ -115,6 +116,8 @@ dat <- dat %>%
   ) %>%
   select(DATE, PROVINCE, AGEGROUP, SEX, CASES)
 
+dat<- dat[complete.cases(dat), ] # eliminate data without province, agegroup, sex 
+
 # add new intakes for Belgium as a whole
 belgium <- aggregate(CASES ~ DATE + AGEGROUP + SEX, dat, sum) %>%
   mutate(PROVINCE = "Belgium") %>%
@@ -123,7 +126,24 @@ belgium <- aggregate(CASES ~ DATE + AGEGROUP + SEX, dat, sum) %>%
 ## bind and merge
 dat_all <- rbind(dat, belgium)
 
+
+# all period 
+
+allperiod <- as.data.frame(expand.grid(as.Date(min(dat_all$DATE): max(dat_all$DATE)),
+             levels(dat_all$PROVINCE), 
+             levels(dat_all$AGEGROUP), 
+             levels(dat_all$SEX)))
+names(allperiod)<-c("DATE","PROVINCE","AGEGROUP","SEX")
+
+dat_all<-merge(dat_all, allperiod, by=c("DATE","PROVINCE","AGEGROUP","SEX"), all=T)
+
+dat_all[is.na(dat_all)] <- 0
+dat_all <- aggregate(CASES ~ DATE + PROVINCE + AGEGROUP + SEX, dat_all, sum)
+
+
+#merge with pop
 dat_all <- merge(dat_all, pop_all)
+
 
 # add incidence per 100,000
 dat_all$CASES_divid <- 1e5 * dat_all$CASES / dat_all$POPULATION
@@ -413,3 +433,62 @@ ggarrange(ggarrange(pro_p1, pro_p2, pro_p3, ncol = 1),
   ncol = 1, heights = c(2, 1)
 )
 dev.off()
+
+
+
+library(GADMTools)
+library(RColorBrewer)
+library(tmap)
+library(sf)
+
+
+map <- gadm_sf_loadCountries(c("BEL"), level = 2, basefile = "./")$sf
+
+map <- map %>%
+  mutate(PROVINCE = case_when(
+    NAME_2 %in% c("Brabant Wallon", "Vlaams Brabant", "Bruxelles") ~ "Brabant",
+    !NAME_2 %in% c("Brabant Wallon", "Vlaams Brabant", "Bruxelles") ~ NAME_2
+  )) %>%
+  group_by(PROVINCE) %>%
+  summarise(geometry = st_union(geometry))
+
+
+mapBelgium<- tm_shape(map, unit = "km") +
+  tm_borders(lwd = 2, col ="gray")+
+  tm_layout(frame=F)
+
+tmap_save(mapBelgium,units="cm", height = 12,  width = 25.4,  filename="map.png", dpi=300)
+
+
+
+library(png)
+
+img1 <- readPNG("pyramid-plot_facets_incidence_week.png")
+img2 <- readPNG("map.png")
+
+
+# Load downloaded images and add alpha channel
+
+img1 = abind::abind(img1, img1[,,1]) # add an alpha channel
+
+img2 = abind::abind(img2, img2[,,1]) # add an alpha channel
+
+# Make semi-transparent
+img1[,,4] <- 1
+img2[,,4] <- 0.2
+
+# Create output image
+
+library(graphics)
+
+png('pyramid-plot_facets_incidence_week.png', width = 25.71428 * 360, height = 12 * 360, units = "px", res=300)
+par(mar = c(0,0,0,0), xaxs="i", yaxs="i")
+plot.new()
+
+rasterImage(img1, 0, 0, 1, 1)
+rasterImage(img2, 0, 0, 1, 1)
+dev.off()
+
+
+
+
