@@ -35,7 +35,7 @@ pop$PROVINCE <- ifelse(pop$TX_ADM_DSTR_DESCR_FR == "Arrondissement de Bruxelles-
 # extract province names
 pop <- mutate(pop, PROVINCE = as.factor(sapply(strsplit(PROVINCE, split = " ", fixed = TRUE), function(x) (x[2])))) %>%
   select(PROVINCE, CD_AGE, CD_SEX, MS_POPULATION) %>%
-  rename(
+  dplyr::rename(
     AGE = CD_AGE,
     SEX = CD_SEX,
     POPULATION = MS_POPULATION
