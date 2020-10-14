@@ -109,9 +109,9 @@ gx_map<-function(first_date, second_date){
   ## points for labels
   points <- st_centroid(map)
   points <- cbind(map, st_coordinates(st_centroid(map$geometry)))
-  
+
   points <- mutate(points,
-                   num = paste("(", round(per, 2), ")"))
+                   num = paste("(", format(round(per, 2),nsmall=2), ")"))
   
 #chosen second_date (for the last period)
   if (second_date == max(dat$DATE)) {
@@ -147,7 +147,7 @@ gx_map<-function(first_date, second_date){
       # Change legend
       legend.position = "none",
       legend.key.size = unit(0.9, "line"),
-      legend.title = element_text(size = 12, color = "black", face = "bold"),
+      legend.title = element_text(size = 12, color = "black", face="bold"),
       legend.text = element_text(color = "black", size = 11),
       plot.margin = unit(c(+0.1, 0, +0.2, 0), "cm")
   )
@@ -167,7 +167,7 @@ legend<- get_legend(gx_map(date0,date1) +
                       theme(legend.position = "right"))
 
 # saving
-png(file = "EvolutionHospitalizations_red.png", width = 12 * 360, height = 5.6* 360, units = "px", pointsize = 7, res = 300)
+png(file = "EvolutionHospitalizations_red.png", width = 12 * 360, height = 6* 360, units = "px", pointsize = 7, res = 300)
 grid.arrange(          gx_map(date0,date1),
                        gx_map(date1,date2),
                        gx_map(date2,date3),
