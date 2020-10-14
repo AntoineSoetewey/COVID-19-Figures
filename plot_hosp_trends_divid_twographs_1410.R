@@ -62,11 +62,26 @@ dat <- rbind(dat, belgium) %>%
 
 dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
 
+# choose period
+subdat <- subset(dat, DATE >= "2020-06-21")
+
 # Create plot in english
 fig_trends <- ggplot(
-  subset(dat, DATE >= "2020-06-21"),
+  subdat,
   aes(x = DATE, y = NEW_IN_divid)
 ) +
+  geom_vline(
+    xintercept = as.Date("2020-07-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
+  ) +
+  geom_vline(
+    xintercept = as.Date("2020-08-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
+  ) +
+  geom_vline(
+    xintercept = as.Date("2020-09-01"), linetype = "dashed",
+    color = "lightgrey", size = 0.5
+  ) +
   annotate("rect",
     ymin = -Inf, ymax = 0.5,
     xmin = as.Date(-Inf), xmax = as.Date(Inf),
@@ -98,22 +113,10 @@ fig_trends <- ggplot(
     method = "gam",
     formula = y ~ s(x)
   ) +
-  geom_vline(
-    xintercept = as.Date("2020-07-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-08-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-09-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
   labs(
     title = "Evolution of hospital admissions in Belgium - COVID-19"
   ) +
-  scale_y_continuous(breaks = seq(from = 0, to = 1.5, by = 0.5), limits = c(0, 1.5)) +
+  scale_y_continuous(breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 1), limits = c(0, max(subdat$NEW_IN_divid))) +
   scale_x_date(labels = date_format("%b")) +
   theme(
     axis.title = element_text(size = 14),
@@ -261,7 +264,7 @@ map2 <- ggplot(map) +
   )
 
 # save plot
-png(file = "Belgian_Hospitalisations_0910.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalisations_1410.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(map1, map2, ncol = 1),
   grid.arrange(fig_trends, bottom = caption),
   ncol = 2, widths = c(1, 1.5)
