@@ -201,8 +201,8 @@ points <- st_centroid(map)
 points <- cbind(map, st_coordinates(st_centroid(map$geometry)))
 
 points <- mutate(points,
-  num_1 = paste("(", round(per1, 2), ")"),
-  num_2 = paste("(", round(per2, 2), ")")
+  num_1 = paste("(", format(round(per1, 2), nsmall = 2), ")"),
+  num_2 = paste("(", format(round(per2, 2), nsmall = 2), ")")
 )
 
 
