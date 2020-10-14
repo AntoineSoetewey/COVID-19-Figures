@@ -73,7 +73,8 @@ dat <- subset(dat, DATE >= "2020-09-01")
 all_models <- dat %>% 
   group_by(PROVINCE) %>% 
   nest() %>% 
-  mutate(model = map(data, ~glm(NEW_IN_divid ~ DATE,
+  mutate(model = map(data, ~glm(NEW_IN ~ DATE, 
+                               # offset=population,
                                 data = .,
                                 family = "poisson")))
 
@@ -84,8 +85,8 @@ all_fit <- all_models %>%
   select(-model) %>% 
   unnest(cols = c("data","fit")) %>% 
   mutate(fit = 10^.fitted,
-         lcl = 10^(.fitted - .se.fit * qt(0.975, df = max(dat$DATE) - min(dat$DATE))),
-         ucl = 10^(.fitted + .se.fit * qt(0.975, df = max(dat$DATE) - min(dat$DATE))),
+         lcl = 10^(.fitted - .se.fit * qt(0.975, df = 10)),
+         ucl = 10^(.fitted + .se.fit * qt(0.975, df = 10)),
          fitpc = fit,
          lclpc = lcl,
          uclpc = ucl)
