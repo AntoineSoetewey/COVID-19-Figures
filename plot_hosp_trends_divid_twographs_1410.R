@@ -12,7 +12,7 @@ library(grid)
 library(gridExtra)
 
 
-# import Sciensano hospitalisations data
+# import Sciensano hospitalizations data
 dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
 
 # aggregate new intakes by province and date
@@ -101,7 +101,7 @@ fig_trends <- ggplot(
     size = 1L,
     colour = "steelblue"
   ) +
-  labs(x = "", y = "Number of hospitalisations (per 100,00 inhabitants)") +
+  labs(x = "", y = "Number of hospitalizations (per 100,00 inhabitants)") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE),
     scales = "free",
@@ -264,7 +264,7 @@ map2 <- ggplot(map) +
   )
 
 # save plot
-png(file = "Belgian_Hospitalisations_1410.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalizations_1410.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(map1, map2, ncol = 1),
   grid.arrange(fig_trends, bottom = caption),
   ncol = 2, widths = c(1, 1.5)
