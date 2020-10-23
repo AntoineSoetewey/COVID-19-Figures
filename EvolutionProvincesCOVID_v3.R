@@ -170,7 +170,7 @@ legend <- get_legend(gx_map(date0, date1) +
   theme(legend.position = "right"))
 
 # saving
-png(file = "EvolutionHospitalizations_red2.png", width = 12 * 360, height = 6 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "EvolutionHospitalizations_red3.png", width = 12 * 360, height = 6 * 360, units = "px", pointsize = 7, res = 300)
 grid.arrange(gx_map(date0, date1),
   gx_map(date1, date2),
   gx_map(date2, date3),
