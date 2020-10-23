@@ -264,7 +264,7 @@ map2 <- ggplot(map) +
   )
 
 # save plot
-png(file = "Belgian_Hospitalizations_2210.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalizations_2310.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(map1, map2, ncol = 1),
   grid.arrange(fig_trends, bottom = caption),
   ncol = 2, widths = c(1, 1.5)
