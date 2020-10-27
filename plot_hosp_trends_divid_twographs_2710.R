@@ -63,39 +63,52 @@ dat <- rbind(dat, belgium) %>%
 dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
 
 # choose period
-subdat <- subset(dat, DATE >= "2020-09-5")
+period <- "2020-09-20"
+subdat <- subset(dat, DATE >= period)
 
-# Create plot in english
+period2 <- min(dat$DATE) + (max(dat$DATE) - as.Date(period))
+subdat2 <- subset(dat, DATE <= period2)
+time_diff <- as.Date(period) - min(subdat2$DATE)
+subdat2$DATE <- subdat2$DATE + time_diff
+
+break.vec <- c(seq(
+  from = as.Date(period), to = max(dat$DATE),
+  by = "2 weeks"
+))
+
+# Create plot in English
 fig_trends <- ggplot(
   subdat,
   aes(x = DATE, y = NEW_IN_divid)
 ) +
-  geom_vline(
-    xintercept = as.Date("2020-07-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
+  # geom_vline(
+  #   xintercept = as.Date("2020-07-01"), linetype = "dashed",
+  #   color = "lightgrey", size = 0.5
+  # ) +
+  # geom_vline(
+  #   xintercept = as.Date("2020-08-01"), linetype = "dashed",
+  #   color = "lightgrey", size = 0.5
+  # ) +
+  # geom_vline(
+  #   xintercept = as.Date("2020-09-01"), linetype = "dashed",
+  #   color = "lightgrey", size = 0.5
+  # ) +
+  geom_point(
+    data = subdat2,
+    aes(x = DATE, y = NEW_IN_divid),
+    col = "darkgrey",
+    alpha = 0.35
   ) +
-  geom_vline(
-    xintercept = as.Date("2020-08-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  geom_vline(
-    xintercept = as.Date("2020-09-01"), linetype = "dashed",
-    color = "lightgrey", size = 0.5
-  ) +
-  annotate("rect",
-    ymin = -Inf, ymax = 0.5,
-    xmin = as.Date(-Inf), xmax = as.Date(Inf),
-    alpha = .05
-  ) +
-  annotate("rect",
-    ymin = 0.5, ymax = 1,
-    xmin = as.Date(-Inf), xmax = as.Date(Inf),
-    alpha = .1
-  ) +
-  annotate("rect",
-    ymin = 1, ymax = Inf,
-    xmin = as.Date(-Inf), xmax = as.Date(Inf),
-    alpha = .15
+  geom_line(
+    data = subdat2,
+    aes(x = DATE, y = NEW_IN_divid),
+    stat = "smooth",
+    method = "gam",
+    formula = y ~ s(x),
+    col = "darkgrey",
+    alpha = 0.5,
+    size = 1L,
+    linetype = 1
   ) +
   geom_point(
     size = 1L,
@@ -109,30 +122,67 @@ fig_trends <- ggplot(
   ) +
   geom_smooth(
     se = FALSE,
-    col = "grey",
+    col = "steelblue",
     method = "gam",
     formula = y ~ s(x)
   ) +
   labs(
-    title = "Evolution of hospital admissions in Belgium - COVID-19"
+    title = "Evolution of hospital admissions in Belgium - COVID-19",
+    subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (in blue) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (in gray)")
   ) +
-  scale_y_continuous(breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 1), limits = c(0, max(subdat$NEW_IN_divid))) +
-  scale_x_date(labels = date_format("%d/%m")) +
+  scale_y_continuous(
+    breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 2),
+    limits = c(0, max(subdat$NEW_IN_divid))
+  ) +
+  scale_x_date(
+    labels = date_format("%d/%m"),
+    # date_breaks = "2 weeks",
+    breaks = break.vec,
+    sec.axis = sec_axis(~ . - time_diff,
+      labels = date_format("%d/%m"),
+      breaks = break.vec - time_diff
+    )
+  ) +
   theme(
     axis.title = element_text(size = 14),
     plot.title = element_text(size = 16, face = "bold"),
     axis.text = element_text(size = 12),
+    axis.text.x = element_text(colour = "steelblue"),
+    axis.text.x.top = element_text(color = "darkgray"),
     strip.text = element_text(size = 12),
+    strip.placement = "outside",
     plot.margin = unit(c(5.5, 5.5, 20, 5.5), "points")
   )
 
+dat_peak <- data.frame(
+  PROVINCE = as.factor(levels(dat$PROVINCE)),
+  h_int = aggregate(y ~ PANEL, data = ggplot_build(fig_trends)[["data"]][[2]], max)$y,
+  PANEL = 1:nlevels(dat$PROVINCE)
+)
+
+fig_trends <- fig_trends +
+  geom_hline(
+    data = dat_peak,
+    aes(yintercept = h_int),
+    linetype = "dashed",
+    # size = 1L,
+    color = "darkgrey",
+    alpha = 0.5
+  ) +
+  facet_wrap(~PROVINCE,
+    scales = "free",
+    ncol = 5
+  )
+
+fig_trends
+
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob("* Solid lines: curves fitted to observations",
+  textGrob(paste0("* ", format(as.Date(period), "%d/%m"), " to ", format(max(dat$DATE), "%d/%m"), " in blue; ", format(min(dat$DATE), "%d/%m"), " to ", format(period2, "%d/%m"), " in gray\n* Solid lines: curves fitted to observations"),
     x = 0, hjust = 0, vjust = 0,
-    gp = gpar(col = "darkgray", fontsize = 8, lineheight = 1.2)
+    gp = gpar(col = "darkgrey", fontsize = 8, lineheight = 1.2)
   ),
-  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
+  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)  \nData: https://epistat.wiv-isp.be/covid/  ",
     x = 1, hjust = 1, vjust = 0,
     gp = gpar(col = "black", fontsize = 10, lineheight = 1.2)
   ),
@@ -222,11 +272,11 @@ map1 <- ggplot(map) +
   geom_sf(aes(fill = class1)) +
   scale_fill_manual(values = blues, drop = FALSE) +
   geom_text(
-    data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4,  nudge_x = -0.07,
+    data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
   geom_text(
-    data = points, aes(x = X, y = Y, label = num_1), col = "black", size = 3,  nudge_x = -0.07,
+    data = points, aes(x = X, y = Y, label = num_1), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
   labs(fill = bquote(atop(NA, atop("Daily hospitalizations (x100,000 inh.)", bold(.(period1)))))) +
@@ -245,7 +295,7 @@ map2 <- ggplot(map) +
   geom_sf(aes(fill = class2)) +
   scale_fill_manual(values = blues, drop = FALSE) +
   geom_text(
-    data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4,  nudge_x = -0.07,
+    data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
   geom_text(
@@ -264,7 +314,7 @@ map2 <- ggplot(map) +
   )
 
 # save plot
-png(file = "Belgian_Hospitalizations_2310.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalizations_2710.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(ggarrange(map1, map2, ncol = 1),
   grid.arrange(fig_trends, bottom = caption),
   ncol = 2, widths = c(1, 1.5)
