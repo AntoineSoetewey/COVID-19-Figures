@@ -63,7 +63,7 @@ dat <- rbind(dat, belgium) %>%
 dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
 
 # choose period
-period <- "2020-09-29"
+period <- "2020-09-20"
 subdat <- subset(dat, DATE >= period)
 
 period2 <- min(dat$DATE) + (max(dat$DATE) - as.Date(period))
@@ -279,7 +279,7 @@ map1 <- ggplot(map) +
     data = points, aes(x = X, y = Y, label = num_1), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Patients in hospitals (x100,000 inh.)", bold(.(period1)))))) +
+  labs(fill = bquote(atop(NA, atop("Average number of patients\nin hospitals (x100,000 inh.)", bold(.(period1)))))) +
   theme_void() +
   theme(
     # Change legend
@@ -302,11 +302,11 @@ map2 <- ggplot(map) +
     data = points, aes(x = X, y = Y, label = num_2), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Patients in hospitals (x100,000 inh.)", bold(.(period2)))))) +
+  labs(fill = bquote(atop(NA, atop("Average number of patients\nin hospitals (x100,000 inh.)", bold(.(period2)))))) +
   theme_void() +
   theme(
     # Change legend
-    legend.position = c(0.2, 0.22),
+    legend.position = c(0.2, 0.2),
     legend.key.size = unit(0.9, "line"),
     legend.title = element_text(size = 12, color = "black"),
     legend.text = element_text(color = "black"),
