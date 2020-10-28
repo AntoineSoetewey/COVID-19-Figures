@@ -63,7 +63,7 @@ dat <- rbind(dat, belgium) %>%
 dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
 
 # choose period
-period <- "2020-09-20"
+period <- "2020-09-29"
 subdat <- subset(dat, DATE >= period)
 
 period2 <- min(dat$DATE) + (max(dat$DATE) - as.Date(period))
@@ -96,8 +96,8 @@ fig_trends <- ggplot(
   geom_point(
     data = subdat2,
     aes(x = DATE, y = TOTAL_IN_divid),
-    col = "darkgrey",
-    alpha = 0.35
+    col = "grey",
+    shape = 1
   ) +
   geom_line(
     data = subdat2,
@@ -105,14 +105,14 @@ fig_trends <- ggplot(
     stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
-    col = "darkgrey",
+    col = "grey",
     alpha = 0.5,
     size = 1L,
     linetype = 1
   ) +
   geom_point(
-    size = 1L,
-    colour = "steelblue"
+    colour = "steelblue",
+    shape = 1
   ) +
   labs(x = "", y = "Number of patients in hospitals (per 100,00 inhabitants)") +
   theme_minimal() +
@@ -165,7 +165,7 @@ fig_trends <- fig_trends +
     data = dat_peak,
     aes(yintercept = h_int),
     linetype = "dashed",
-    # size = 1L,
+    size = 0.75,
     color = "darkgrey",
     alpha = 0.75
   ) +

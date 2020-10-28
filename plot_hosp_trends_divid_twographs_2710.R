@@ -165,7 +165,7 @@ fig_trends <- fig_trends +
     data = dat_peak,
     aes(yintercept = h_int),
     linetype = "dashed",
-    # size = 1L,
+    size = 0.75,
     color = "darkgrey",
     alpha = 0.5
   ) +
