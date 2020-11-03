@@ -114,7 +114,7 @@ fig_trends <- ggplot(
     size = 1L,
     colour = "steelblue"
   ) +
-  labs(x = "", y = "Number of hospitalizations (per 100,00 inhabitants)") +
+  labs(x = "", y = "Nombre d'hospitalisations (par 100,00 habitants)") +
   theme_minimal() +
   facet_wrap(vars(PROVINCE),
     scales = "free",
@@ -127,8 +127,8 @@ fig_trends <- ggplot(
     formula = y ~ s(x)
   ) +
   labs(
-    title = "Evolution of hospital admissions in Belgium - COVID-19",
-    subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (in blue) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (in gray)")
+    title = "Evolution des admissions hospitalières en Belgique - COVID-19",
+    subtitle = paste0(format(as.Date(period), "%d/%m"), " au ", format(max(dat$DATE), "%d/%m"), " (en bleu) vs. ", format(min(dat$DATE), "%d/%m"), " au ", format(period2, "%d/%m"), " (en gris)")
   ) +
   scale_y_continuous(
     breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 2),
@@ -174,15 +174,15 @@ fig_trends <- fig_trends +
     ncol = 5
   )
 
-fig_trends
+# fig_trends
 
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(paste0("* ", format(as.Date(period), "%d/%m"), " to ", format(max(dat$DATE), "%d/%m"), " in blue; ", format(min(dat$DATE), "%d/%m"), " to ", format(period2, "%d/%m"), " in gray\n* Solid lines: curves fitted to observations"),
+  textGrob(paste0("* ", format(as.Date(period), "%d/%m"), " au ", format(max(dat$DATE), "%d/%m"), " en bleu; ", format(min(dat$DATE), "%d/%m"), " au ", format(period2, "%d/%m"), " en gris\n* Lignes solides: courbes adaptées aux observations"),
     x = 0, hjust = 0, vjust = 0,
     gp = gpar(col = "darkgrey", fontsize = 8, lineheight = 1.2)
   ),
-  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)  \nData: https://epistat.wiv-isp.be/covid/  ",
+  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)  \nDonnées: https://epistat.wiv-isp.be/covid/  ",
     x = 1, hjust = 1, vjust = 0,
     gp = gpar(col = "black", fontsize = 10, lineheight = 1.2)
   ),
@@ -256,9 +256,9 @@ points <- mutate(points,
 )
 
 
-period1 <- paste0("Period: 25/03 - 07/04", "   ")
+period1 <- paste0("Période: 25/03 - 07/04", "   ")
 period2 <- paste0(
-  "Period: ", format(mini, format = "%d/%m"), " - ",
+  "Période: ", format(mini, format = "%d/%m"), " - ",
   format(maxi, format = "%d/%m"), "   "
 )
 
@@ -279,11 +279,11 @@ map1 <- ggplot(map) +
     data = points, aes(x = X, y = Y, label = num_1), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Daily hospitalizations (x100,000 inh.)", bold(.(period1)))))) +
+  labs(fill = bquote(atop(NA, atop("Hospitalisations journalières\n          (x 100,000 hab.)", bold(.(period1)))))) +
   theme_void() +
   theme(
     # Change legend
-    legend.position = c(0.2, 0.2),
+    legend.position = c(0.18, 0.2),
     legend.key.size = unit(0.9, "line"),
     legend.title = element_text(size = 12, color = "black"),
     legend.text = element_text(color = "black"),
@@ -302,11 +302,11 @@ map2 <- ggplot(map) +
     data = points, aes(x = X, y = Y, label = num_2), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Daily hospitalizations (x100,000 inh.)", bold(.(period2)))))) +
+  labs(fill = bquote(atop(NA, atop("Hospitalisations journalières\n          (x 100,000 hab.)", bold(.(period2)))))) +
   theme_void() +
   theme(
     # Change legend
-    legend.position = c(0.2, 0.22),
+    legend.position = c(0.18, 0.2),
     legend.key.size = unit(0.9, "line"),
     legend.title = element_text(size = 12, color = "black"),
     legend.text = element_text(color = "black"),
