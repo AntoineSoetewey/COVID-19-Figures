@@ -256,7 +256,7 @@ map2 <- ggplot(map) +
   theme_void() +
   theme(
     # Change legend
-    legend.position = c(0.2, 0.22),
+    legend.position = c(0.2, 0.2),
     legend.key.size = unit(0.9, "line"),
     legend.title = element_text(size = 12, color = "black"),
     legend.text = element_text(color = "black"),
