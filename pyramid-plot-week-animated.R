@@ -110,7 +110,7 @@ gif <-
 # gif
 animate(
   gif,
-  fps = 10, duration = floor(((nrow(df) / 2 / 10) + 20) / 10), end_pause = 20, width = 800, height = 450)
+  fps = 10, duration = ceiling(((nrow(df) / 2 / 10) + 20) / 10), end_pause = 20, width = 800, height = 450)
 anim_save(filename = "pyramid-plot-week-animated.gif")
 
 
@@ -159,5 +159,5 @@ gif <-
 # gif
 animate(
   gif,
-  fps = 10, duration = floor(((nrow(df) / 2 / 10) + 20) / 10), end_pause = 20, width = 800, height = 450)
+  fps = 10, duration = ceiling(((nrow(df) / 2 / 10) + 20) / 10), end_pause = 20, width = 800, height = 450)
 anim_save(filename = "pyramid-plot-week-animated-incidence.gif")
