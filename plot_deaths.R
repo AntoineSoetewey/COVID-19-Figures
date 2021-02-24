@@ -12,38 +12,42 @@ library(grid)
 library(gridExtra)
 
 
-# import Sciensano hospitalizations data
-dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
+# import statbel data
+dat_statbel <- read.csv(file = "DEMO_DEATH_OPEN_W05.txt",
+                        sep = ";",
+                        stringsAsFactors = TRUE,
+                        header = TRUE)
 
-# aggregate new intakes by province and date
+# choose period
+dat_statbel$DT_DATE <- as.Date(dat_statbel$DT_DATE, format = "%d/%m/%Y")
+starting_date <- "2020-03-01"
+end_date <- max(dat_statbel$DT_DATE)
+dat_statbel <- subset(dat_statbel, DT_DATE >= starting_date & DT_DATE <= end_date)
 
-dat <- dat %>%
-  mutate(
-    DATE = as.Date(DATE),
-    PROVINCE2 = case_when(
-      PROVINCE %in% c("BrabantWallon", "VlaamsBrabant", "Brussels") ~ "Brabant",
-      !PROVINCE %in% c("BrabantWallon", "VlaamsBrabant", "Brussels") ~ PROVINCE
-    ),
-    PROVINCE2 = case_when(
-      PROVINCE == "OostVlaanderen" ~ "Oost-Vlaanderen",
-      PROVINCE == "WestVlaanderen" ~ "West-Vlaanderen",
-      !PROVINCE %in% c("OostVlaanderen", "WestVlaanderen") ~ PROVINCE2
-    ),
-    PROVINCE = PROVINCE2
-  )
+# label provinces
+dat_statbel$CD_PROV <- as.factor(dat_statbel$CD_PROV)
+## Recoding dat_statbel$CD_PROV
+dat_statbel$CD_PROV <- recode_factor(dat_statbel$CD_PROV,
+  "4000" = "Brabant",
+  "10000" = "Antwerpen",
+  "20001" = "Brabant",
+  "20002" = "Brabant",
+  "30000" = "West-Vlaanderen",
+  "40000" = "Oost-Vlaanderen",
+  "50000" = "Hainaut",
+  "60000" = "Liège",
+  "70000" = "Limburg",
+  "80000" = "Luxembourg",
+  "90000" = "Namur"
+)
+# View(dat_statbel)
 
-dat <- aggregate(NEW_IN ~ DATE + PROVINCE, dat, sum)
+# aggregate deaths by province
+dat_statbel_agg <- aggregate(MS_NUM_DEATH ~ CD_PROV, dat_statbel, sum)
+names(dat_statbel_agg) <- c("PROVINCE", "DEATH")
+View(dat_statbel_agg)
 
-
-# add new intakes for Belgium as a whole
-
-belgium <- aggregate(NEW_IN ~ DATE, dat, sum) %>%
-  mutate(PROVINCE = "Belgium") %>%
-  select(DATE, PROVINCE, NEW_IN)
-
-##
-
-dat <- rbind(dat, belgium) %>%
+dat_statbel_agg <- dat_statbel_agg %>%
   mutate(
     population = case_when(
       PROVINCE == "Antwerpen" ~ 1857986,
@@ -57,24 +61,9 @@ dat <- rbind(dat, belgium) %>%
       PROVINCE == "West-Vlaanderen" ~ 1195796,
       PROVINCE == "Belgium" ~ 11431406
     ),
-    NEW_IN_divid = NEW_IN / population * 100000
+    DEATH_divid = DEATH / population * 100000
   )
 
-dat$PROVINCE <- relevel(as.factor(dat$PROVINCE), ref = "Belgium")
-
-# choose period
-period <- "2020-09-20"
-subdat <- subset(dat, DATE >= period)
-
-period2 <- min(dat$DATE) + (max(dat$DATE) - as.Date(period))
-subdat2 <- subset(dat, DATE <= period2)
-time_diff <- as.Date(period) - min(subdat2$DATE)
-subdat2$DATE <- subdat2$DATE + time_diff
-
-break.vec <- c(seq(
-  from = as.Date(period), to = max(dat$DATE),
-  by = "2 weeks"
-))
 
 
 
@@ -82,29 +71,16 @@ break.vec <- c(seq(
 
 ### Obtaining Belgium shapefile at province level
 
-library(rgdal)
 library(GADMTools)
 library(RColorBrewer)
 library(tmap)
 library(sf)
 
-maxi <- max(dat$DATE)
-mini <- max(dat$DATE) - 13
-divi <- length(mini:maxi)
 
-# agregated data to join with the map
-# calculating the daily rate in two periods :
-## 1. last week of March- first week of April (14 days)
-## 2. Last 14 days reported by Scienciano
-
-dat$PROVINCE <- as.character(dat$PROVINCE)
-
-
-dat_ag <- filter(dat, PROVINCE != "Belgium") %>%
+dat_ag <- filter(dat_statbel_agg, PROVINCE != "Belgium") %>%
   group_by(PROVINCE) %>%
   summarize(
-    "per1" = sum(NEW_IN_divid[DATE >= as.Date("2020-03-25") & DATE <= as.Date("2020-04-07")], na.rm = T) / 14,
-    "per2" = sum(NEW_IN_divid[DATE >= mini & DATE <= maxi], na.rm = T) / divi
+    "per1" = sum(DEATH_divid)
   )
 
 
@@ -121,16 +97,14 @@ map <- map %>%
   left_join(dat_ag, by = "PROVINCE") %>%
   mutate(
     class1 = cut(per1,
-      breaks = c(0, 0.5, 1.0, 1.5, 3, 5, 9),
+      breaks = c(900, 950, 1000, 1050, 1100, 1150, 9999),
       include.lowest = TRUE,
-      labels = c("[ 0.0, 0.5 ]", "] 0.5, 1.0 ]", "] 1.0, 1.5 ]", "] 1.5, 3.0 ]", "] 3.0, 5.0]", " > 5.0")
-    ),
-    class2 = cut(per2,
-      breaks = c(0, 0.5, 1.0, 1.5, 3, 5, 9),
-      include.lowest = TRUE,
-      labels = c("[ 0.0, 0.5 ]", "] 0.5, 1.0 ]", "] 1.0, 1.5 ]", "] 1.5, 3.0 ]", "] 3.0, 5.0]", " > 5.0")
+      labels = c("[ 900, 950]", "] 950, 1000 ]", "] 1000, 1050 ]", "] 1050, 1100 ]", "] 1100, 1150 ]", " > 1150")
     )
   )
+
+
+
 
 
 
@@ -140,16 +114,12 @@ points <- st_centroid(map)
 points <- cbind(map, st_coordinates(st_centroid(map$geometry)))
 
 points <- mutate(points,
-  num_1 = paste("(", format(round(per1, 2), nsmall = 2), ")"),
-  num_2 = paste("(", format(round(per2, 2), nsmall = 2), ")")
+  num_1 = paste("(", format(round(per1, 2), nsmall = 2), ")")
 )
 
 
-period1 <- paste0("Period: 25/03 - 07/04", "   ")
-period2 <- paste0(
-  "Period: ", format(mini, format = "%d/%m"), " - ",
-  format(maxi, format = "%d/%m"), "   "
-)
+period1 <- paste0("Period ", starting_date, " to ", end_date)
+
 
 
 library(RColorBrewer)
@@ -159,7 +129,7 @@ blues <- brewer.pal(7, "Blues")
 
 map1 <- ggplot(map) +
   geom_sf(aes(fill = class1)) +
-  scale_fill_manual(values = blues, drop = FALSE) +
+  scale_fill_manual(values = reds, drop = FALSE) +
   geom_text(
     data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4, nudge_x = -0.07,
     check_overlap = TRUE
@@ -168,7 +138,8 @@ map1 <- ggplot(map) +
     data = points, aes(x = X, y = Y, label = num_1), col = "black", size = 3, nudge_x = -0.07,
     check_overlap = TRUE
   ) +
-  labs(fill = bquote(atop(NA, atop("Daily hospitalizations (x100,000 inh.)", bold(.(period1)))))) +
+  labs(fill = bquote(atop(NA, atop("Deaths (x100,000 inh.)", bold(.(period1))))),
+       title = "Deaths by province in Belgium") +
   theme_void() +
   theme(
     # Change legend
@@ -178,34 +149,19 @@ map1 <- ggplot(map) +
     legend.text = element_text(color = "black"),
     plot.margin = unit(c(+0.2, 0, +0.5, 3), "cm")
   )
+# map1
 
+## adjust caption at the end of the trend figure
+caption <- grobTree(
+    textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)  \nData: Statbel   ",
+           x = 1, hjust = 1, vjust = 0,
+           gp = gpar(col = "black", fontsize = 10, lineheight = 1.2)
+  ),
+  cl = "ann"
+)
 
-map2 <- ggplot(map) +
-  geom_sf(aes(fill = class2)) +
-  scale_fill_manual(values = blues, drop = FALSE) +
-  geom_text(
-    data = points, aes(x = X, y = Y + 0.06, label = PROVINCE), col = "black", size = 2.4, nudge_x = -0.07,
-    check_overlap = TRUE
-  ) +
-  geom_text(
-    data = points, aes(x = X, y = Y, label = num_2), col = "black", size = 3, nudge_x = -0.07,
-    check_overlap = TRUE
-  ) +
-  labs(fill = bquote(atop(NA, atop("Daily hospitalizations (x100,000 inh.)", bold(.(period2)))))) +
-  theme_void() +
-  theme(
-    # Change legend
-    legend.position = c(0.2, 0.22),
-    legend.key.size = unit(0.9, "line"),
-    legend.title = element_text(size = 12, color = "black"),
-    legend.text = element_text(color = "black"),
-    plot.margin = unit(c(+0.2, 0, +0.5, 3), "cm")
-  )
 
 # save plot
-png(file = "plot_deaths_2202.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
-ggarrange(ggarrange(map1, map2, ncol = 1),
-  grid.arrange(fig_trends, bottom = caption),
-  ncol = 2, widths = c(1, 1.5)
-)
+png(file = "plot_deaths_statbel_2202.png", width = 7 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+ggarrange(grid.arrange(map1, bottom = caption))
 dev.off()
