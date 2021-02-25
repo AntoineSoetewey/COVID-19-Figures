@@ -561,7 +561,7 @@ fig_trends3 <- ggplot(
     alpha=0.35
   ) +
   labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants)",
-       title = "Evolution du nombre d'hospitalisations en Belgique - COVID-19") +
+       title = "Evolution des admissions hospitalières en Belgique - COVID-19") +
   # theme_minimal() +
   theme_economist() + scale_color_economist() +
   geom_smooth(
@@ -570,11 +570,6 @@ fig_trends3 <- ggplot(
     method = "gam",
     formula = y ~ s(x)
   ) +
-  # labs(
-  #   title = "Evolution des admissions hospitalières en Belgique - COVID-19"
-  #   # ,
-  #   # subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (en bleu) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (en gris)")
-  # ) +
   scale_y_continuous(
     breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 2),
     limits = c(0, max(subdat$NEW_IN_divid))
@@ -635,3 +630,67 @@ fig_trends5 <- fig_trends3 +
   theme(axis.line.y = element_line())
 fig_trends5
 ggsave("fig_trends5.png")
+
+
+fig_trends3bis <- ggplot(
+  subdat,
+  aes(x = DATE, y = NEW_IN)
+) +
+  geom_point(
+    size = 2L,
+    colour = "steelblue",
+    alpha=0.35
+  ) +
+  labs(x = "", y = "Nombre d'hospitalisations",
+       title = "Evolution des admissions hospitalières en Belgique - COVID-19") +
+  # theme_minimal() +
+  theme_economist() + scale_color_economist() +
+  geom_smooth(
+    se = FALSE,
+    col = "steelblue",
+    method = "gam",
+    formula = y ~ s(x)
+  ) +
+  scale_y_continuous(
+    breaks = seq(from = 0, to = max(subdat$NEW_IN), by = 200),
+    limits = c(0, max(subdat$NEW_IN))
+  ) +
+  scale_x_date(
+    labels = date_format("%d/%m"),
+    # date_breaks = "2 weeks",
+    breaks = break.vec,
+    # sec.axis = sec_axis(~ . - time_diff,
+    #                     labels = date_format("%d/%m"),
+    #                     breaks = break.vec - time_diff
+    # )
+  ) +
+  
+  geom_hline(
+    yintercept = 75, linetype = "dashed",
+    color = "red", size = 0.8
+  ) +
+  
+  geom_text(aes(x = as.Date("2020-10-30"), y = 75 + (0.2 * 114), label = "Niveau de 75 hospitalisations/jour"),
+            colour = "red", angle = 0, size = 5
+  ) +
+  geom_vline(
+    xintercept = as.Date("2020-10-6"), linetype = "dashed",
+    color = "darkgray", size = 0.8
+  ) +
+  geom_text(aes(x = as.Date("2020-10-6"), y = 5 * 114, label = "6/10 : comité de concertation : mesures plus strictes"),
+            colour = "darkgray", angle = 90, vjust = -0.5, size = 5
+  ) +
+  
+  theme(
+    axis.title = element_text(size = 16),
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.text = element_text(size = 16),
+    axis.text.x = element_text(colour = "steelblue"),
+    axis.text.x.top = element_text(color = "darkgray"),
+    strip.text = element_text(size = 14),
+    strip.placement = "outside"
+  )
+
+
+fig_trends3bis
+ggsave("fig_trends3bis.png")
