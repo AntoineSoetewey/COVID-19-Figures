@@ -322,7 +322,7 @@ map2 <- ggplot(map) +
 # dev.off()
 
 # save plot
-png(file = "Belgian_Hospitalizations_2710.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
+png(file = "Belgian_Hospitalizations_2602.png", width = 15 * 360, height = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(grid.arrange(fig_trends, bottom = caption),
  widths = c(1, 1.5)
 )
