@@ -12,7 +12,6 @@ library(grid)
 library(gridExtra)
 library(ggthemes)
 
-
 # import Sciensano hospitalizations data
 dat <- read.csv("https://epistat.sciensano.be/Data/COVID19BE_HOSP.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
 
@@ -43,7 +42,6 @@ belgium <- aggregate(NEW_IN ~ DATE, dat, sum) %>%
   select(DATE, PROVINCE, NEW_IN)
 
 ##
-
 dat <- rbind(dat, belgium) %>%
   mutate(
     population = case_when(
@@ -75,7 +73,7 @@ subdat2$DATE <- subdat2$DATE + time_diff
 
 break.vec <- c(seq(
   from = as.Date(period), to = max(dat$DATE),
-  by = "2 weeks"
+  by = "4 weeks"
 ))
 
 # Create plot
@@ -116,8 +114,9 @@ fig_trends <- ggplot(
     size = 1L,
     colour = "steelblue"
   ) +
-  labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants)") +
+  labs(x = "", y = "Number of hospitalisations (per 100,000 inhabitants)") +
   theme_minimal() +
+  # theme_economist() + scale_color_economist() +
   facet_wrap(vars(PROVINCE),
     scales = "free",
     ncol = 5
@@ -129,7 +128,7 @@ fig_trends <- ggplot(
     formula = y ~ s(x)
   ) +
   labs(
-    title = "Evolution des admissions hospitalières en Belgique - COVID-19"
+    # title = "Evolution des admissions hospitalières en Belgique - COVID-19"
     # ,
     # subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (en bleu) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (en gris)")
   ) +
@@ -179,9 +178,11 @@ fig_trends <- fig_trends +
 
 fig_trends
 
+#  ggsave("fig_trends.png")
+
 ## adjust caption at the end of the trend figure
 caption <- grobTree(
-  textGrob(paste0("* ", format(as.Date(period), "%d/%m"), " to ", format(max(dat$DATE), "%d/%m"), " en bleu; ", format(min(dat$DATE), "%d/%m"), " to ", format(period2, "%d/%m"), " en gris\n* Lignes solides: courbes adaptées aux observations"),
+  textGrob(paste0("* ", format(as.Date(period), "%d/%m"), " to ", format(max(dat$DATE), "%d/%m"), " in blue; ", format(min(dat$DATE), "%d/%m"), " to ", format(period2, "%d/%m"), " in grey\n* Solid lines: fitted lines"),
     x = 0, hjust = 0, vjust = 0,
     gp = gpar(col = "darkgrey", fontsize = 8, lineheight = 1.2)
   ),
@@ -194,7 +195,6 @@ caption <- grobTree(
 
 
 ##### MAPS
-
 ### Obtaining Belgium shapefile at province level
 
 library(GADMTools)
@@ -212,7 +212,6 @@ divi <- length(mini:maxi)
 ## 2. Last 14 days reported by Scienciano
 
 dat$PROVINCE <- as.character(dat$PROVINCE)
-
 
 dat_ag <- filter(dat, PROVINCE != "Belgium") %>%
   group_by(PROVINCE) %>%
@@ -245,8 +244,6 @@ map <- map %>%
       labels = c("[ 0.0, 0.5 ]", "] 0.5, 1.0 ]", "] 1.0, 1.5 ]", "] 1.5, 3.0 ]", "] 3.0, 5.0]", " > 5.0")
     )
   )
-
-
 
 ###### MAPS WITH GGPLOT
 
@@ -335,7 +332,7 @@ dev.off()
 subdat <- subset(subdat, PROVINCE == "Belgium")
 
 # Create Belgian plot only
-fig_trends2 <- ggplot(
+fig_trends2_1 <- ggplot(
   subdat,
   aes(x = DATE, y = NEW_IN_divid)
 ) +
@@ -439,13 +436,15 @@ geom_point(
   )
 
 
-fig_trends2
+fig_trends2_1
+
+subsubdat2 <- subset(subdat2, PROVINCE == "Belgium")
 
 
 # Create Belgian plot only
-fig_trends2 <- ggplot(
+fig_trends2_2 <- ggplot(
   subdat,
-  aes(x = DATE, y = NEW_IN_divid)
+  aes(x = DATE, y = NEW_IN)
 ) +
   # geom_vline(
   #   xintercept = as.Date("2020-07-01"), linetype = "dashed",
@@ -462,14 +461,14 @@ fig_trends2 <- ggplot(
 
 
 geom_point(
-  data = subdat2,
-  aes(x = DATE, y = NEW_IN_divid),
+  data = subsubdat2,
+  aes(x = DATE, y = NEW_IN),
   col = "darkgrey",
   alpha = 0.35
 ) +
   geom_line(
-    data = subdat2,
-    aes(x = DATE, y = NEW_IN_divid),
+    data = subsubdat2,
+    aes(x = DATE, y = NEW_IN),
     stat = "smooth",
     method = "gam",
     formula = y ~ s(x),
@@ -482,8 +481,10 @@ geom_point(
     size = 1L,
     colour = "steelblue"
   ) +
-  labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants)") +
+  labs(x = "", y = "Hospitalisations",
+       caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)\n Data: https://epistat.wiv-isp.be/covid/") +
   theme_minimal() +
+  # theme_economist() + scale_color_economist() +
   geom_smooth(
     se = FALSE,
     col = "steelblue",
@@ -491,13 +492,13 @@ geom_point(
     formula = y ~ s(x)
   ) +
   labs(
-    title = "Evolution des admissions hospitalières en Belgique - COVID-19"
+    # title = "Evolution des admissions hospitalières en Belgique - COVID-19"
     # ,
     # subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (en bleu) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (en gris)")
   ) +
   scale_y_continuous(
-    breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 2),
-    limits = c(0, max(subdat$NEW_IN_divid))
+    breaks = seq(from = 0, to = max(subdat$NEW_IN), by = 200),
+    limits = c(0, max(subdat$NEW_IN))
   ) +
   scale_x_date(
     labels = date_format("%d/%m"),
@@ -509,26 +510,26 @@ geom_point(
     )
   ) +
   
-  geom_vline(
-    xintercept = as.Date("2020-10-06"), linetype = "dashed",
-    color = "steelblue", size = 0.8
-  ) +
-  geom_text(aes(x = as.Date("2020-10-06"), y = 6, label = "6/10: comité de concertation: mesures plus strictes"),
-            colour = "steelblue", angle = 90, vjust = -0.5
-  ) +
-  
-  geom_vline(
-    xintercept = as.Date("2020-12-23"), linetype = "dashed",
-    color = "darkgray", size = 0.8
-  ) +
-  geom_text(aes(x = as.Date("2020-12-23"), y = 6.7, label = "8/06: Ecoles primaires reprennent"),
-            colour = "darkgray", angle = 90, vjust = -0.5
-  ) +
-  
-  geom_hline(
-    yintercept = 75*100000/11431406, linetype = "dashed",
-    color = "red", size = 0.8
-  ) +
+  # geom_vline(
+  #   xintercept = as.Date("2020-10-06"), linetype = "dashed",
+  #   color = "steelblue", size = 0.8
+  # ) +
+  # geom_text(aes(x = as.Date("2020-10-06"), y = 6, label = "6/10: comité de concertation: mesures plus strictes"),
+  #           colour = "steelblue", angle = 90, vjust = -0.5
+  # ) +
+  # 
+  # geom_vline(
+  #   xintercept = as.Date("2020-12-23"), linetype = "dashed",
+  #   color = "darkgray", size = 0.8
+  # ) +
+  # geom_text(aes(x = as.Date("2020-12-23"), y = 6.7, label = "8/06: Ecoles primaires reprennent"),
+  #           colour = "darkgray", angle = 90, vjust = -0.5
+  # ) +
+  # 
+  # geom_hline(
+  #   yintercept = 75*100000/11431406, linetype = "dashed",
+  #   color = "red", size = 0.8
+  # ) +
   
   # geom_text(aes(x = as.Date("2020-12-23"), y = 75*11431406/100000, label = ""),
   #           colour = "darkgray", angle = 90, hjust = -0.5
@@ -544,24 +545,47 @@ geom_point(
     strip.text = element_text(size = 12),
     strip.placement = "outside",
     plot.margin = unit(c(5.5, 5.5, 20, 5.5), "points")
-  )
+  ) +
+  geom_hline(
+    yintercept = 75, linetype = "dashed",
+    color = "red", size = 0.8
+  ) +
+  
+  geom_text(aes(x = as.Date("2020-10-24"), y = 75+25, label = "Level of 75 hospitalisations/day"),
+            colour = "red", angle = 0, size = 4
+  ) +
+  geom_hline(
+    yintercept = 0, linetype = "dashed", size = 0.1
+  ) 
 
 
-fig_trends2
+fig_trends2_2
+ggsave("fig_trends2_2.png",
+       width = 31.75,
+       height = 17.859375,
+       units = "cm",
+       dpi = 300)
 
+subdat <- subdat %>%
+  mutate(
+    DATE = as.Date(DATE),
+     )
 
 # Create Belgian plot only
 fig_trends3 <- ggplot(
   subdat,
+  # aes(x = DATE, y = NEW_IN_divid)
   aes(x = DATE, y = NEW_IN_divid)
 ) +
    geom_point(
-    size = 2L,
+    size = 3L,
     colour = "steelblue",
     alpha=0.35
   ) +
-  labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants)",
-       title = "Evolution des admissions hospitalières en Belgique - COVID-19") +
+  labs(x = "", y = "Nombre d'hospitalisations (par 100,000 habitants)"
+       # ,
+       # title = "Evolution du nombre d'hospitalisations en Belgique - COVID-19"
+       ) +
   # theme_minimal() +
   theme_economist() + scale_color_economist() +
   geom_smooth(
@@ -570,6 +594,11 @@ fig_trends3 <- ggplot(
     method = "gam",
     formula = y ~ s(x)
   ) +
+  # labs(
+  #   title = "Evolution des admissions hospitalières en Belgique - COVID-19"
+  #   # ,
+  #   # subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (en bleu) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (en gris)")
+  # ) +
   scale_y_continuous(
     breaks = seq(from = 0, to = max(subdat$NEW_IN_divid), by = 2),
     limits = c(0, max(subdat$NEW_IN_divid))
@@ -589,14 +618,14 @@ fig_trends3 <- ggplot(
     color = "red", size = 0.8
   ) +
   
-  geom_text(aes(x = as.Date("2020-10-30"), y = 75*100000/11431406+0.2, label = "Niveau de 75 hospitalisations/jour"),
+  geom_text(aes(x = as.Date("2020-11-5"), y = 75*100000/11431406+0.2, label = "Niveau de 75 hospitalisations/jour"),
             colour = "red", angle = 0, size = 5
   ) +
   geom_vline(
     xintercept = as.Date("2020-10-6"), linetype = "dashed",
     color = "darkgray", size = 0.8
   ) +
-  geom_text(aes(x = as.Date("2020-10-6"), y = 5, label = "6/10 : comité de concertation : mesures plus strictes"),
+  geom_text(aes(x = as.Date("2020-10-6"), y = 5.2, label = "6/10 : comité de concertation : mesures plus strictes"),
             colour = "darkgray", angle = 90, vjust = -0.5, size = 5
   ) +
   
@@ -607,42 +636,33 @@ fig_trends3 <- ggplot(
     axis.text.x = element_text(colour = "steelblue"),
     axis.text.x.top = element_text(color = "darkgray"),
     strip.text = element_text(size = 14),
-    strip.placement = "outside"
+    strip.placement = "outside",
+    axis.title.y = 
+          element_text(margin = 
+                         margin(t = 0, r = 9, b = 0, l = 0))
   )
 
 
-fig_trends3
-ggsave("fig_trends3.png")
+# fig_trends3
+# ggsave("fig_trends3.png")
 
 
-# fig with gridlines
-# (opts() is deprecated, use theme())
-fig_trends4 <- fig_trends3 +
-  theme(
-    panel.grid.major = element_line(linetype = c("28")),
-    panel.grid.minor = element_line(linetype = c("28"))
-  )
-fig_trends4
-ggsave("fig_trends4.png")
-
-
-fig_trends5 <- fig_trends3 +
-  theme(axis.line.y = element_line())
-fig_trends5
-ggsave("fig_trends5.png")
-
-
-fig_trends3bis <- ggplot(
+# Create Belgian plot only
+fig_trends3_1 <- ggplot(
   subdat,
+  # aes(x = DATE, y = NEW_IN_divid)
   aes(x = DATE, y = NEW_IN)
 ) +
   geom_point(
-    size = 2L,
+    size = 3L,
     colour = "steelblue",
     alpha=0.35
   ) +
-  labs(x = "", y = "Nombre d'hospitalisations",
-       title = "Evolution des admissions hospitalières en Belgique - COVID-19") +
+  labs(x = "", y = "Hospitalisations per day in Belgium",
+       caption = "Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre)\n Data: https://epistat.wiv-isp.be/covid/"
+       # ,
+       # title = "Evolution du nombre d'hospitalisations en Belgique - COVID-19"
+  ) +
   # theme_minimal() +
   theme_economist() + scale_color_economist() +
   geom_smooth(
@@ -650,7 +670,14 @@ fig_trends3bis <- ggplot(
     col = "steelblue",
     method = "gam",
     formula = y ~ s(x)
+    # ,
+    # linetype = "dashed"
   ) +
+  # labs(
+  #   title = "Evolution des admissions hospitalières en Belgique - COVID-19"
+  #   # ,
+  #   # subtitle = paste0(format(as.Date(period), "%B %d"), " to ", format(max(dat$DATE), "%B %d"), " (en bleu) vs. ", format(min(dat$DATE), "%B %d"), " to ", format(period2, "%B %d"), " (en gris)")
+  # ) +
   scale_y_continuous(
     breaks = seq(from = 0, to = max(subdat$NEW_IN), by = 200),
     limits = c(0, max(subdat$NEW_IN))
@@ -670,16 +697,16 @@ fig_trends3bis <- ggplot(
     color = "red", size = 0.8
   ) +
   
-  geom_text(aes(x = as.Date("2020-10-30"), y = 75 + (0.2 * 114), label = "Niveau de 75 hospitalisations/jour"),
+  geom_text(aes(x = as.Date("2020-11-3"), y = 75+25, label = "Level of 75 hospitalisations/day"),
             colour = "red", angle = 0, size = 5
   ) +
-  geom_vline(
-    xintercept = as.Date("2020-10-6"), linetype = "dashed",
-    color = "darkgray", size = 0.8
-  ) +
-  geom_text(aes(x = as.Date("2020-10-6"), y = 5 * 114, label = "6/10 : comité de concertation : mesures plus strictes"),
-            colour = "darkgray", angle = 90, vjust = -0.5, size = 5
-  ) +
+  # geom_vline(
+  #   xintercept = as.Date("2020-10-6"), linetype = "dashed",
+  #   color = "darkgray", size = 0.8
+  # ) +
+  # geom_text(aes(x = as.Date("2020-10-6"), y = 560, label = "6/10 - comité de concertation: mesures plus strictes"),
+  #           colour = "darkgray", angle = 90, vjust = -0.5, size = 5
+  # ) +
   
   theme(
     axis.title = element_text(size = 16),
@@ -688,9 +715,30 @@ fig_trends3bis <- ggplot(
     axis.text.x = element_text(colour = "steelblue"),
     axis.text.x.top = element_text(color = "darkgray"),
     strip.text = element_text(size = 14),
-    strip.placement = "outside"
+    strip.placement = "outside",
+    axis.title.y = 
+      element_text(margin = 
+                     margin(t = 0, r = 9, b = 0, l = 0))
   )
 
+fig_trends3_1
+ggsave("fig_trends3_1.png",
+       width = 31.75,
+       height = 17.859375,
+       units = "cm",
+       dpi = 300)
 
-fig_trends3bis
-ggsave("fig_trends3bis.png")
+# # fig with gridlines
+# # (opts() is deprecated, use theme())
+# fig_trends4 <- fig_trends3 +
+#   theme(
+#     panel.grid.major = element_line(linetype = c("28")),
+#     panel.grid.minor = element_line(linetype = c("28"))
+#   )
+# fig_trends4
+# ggsave("fig_trends4.png")
+# 
+# fig_trends5 <- fig_trends3 +
+#   theme(axis.line.y = element_line())
+# fig_trends5
+# ggsave("fig_trends5.png")
