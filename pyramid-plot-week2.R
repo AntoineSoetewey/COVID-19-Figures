@@ -43,8 +43,10 @@ dat <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 dat$CASES <- dat$CASES / nweeks
 
 # create limits for number of cases for all periods
-lower_limit <- -500
-upper_limit <- 600
+limit <- 8000
+lower_limit <- -limit
+upper_limit <- limit
+breaks <- 2000
 
 # Create plots in engl
 p1 <- ggplot(data = dat) +
@@ -58,8 +60,8 @@ p1 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -106,8 +108,8 @@ p2 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -148,8 +150,8 @@ p3 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -190,8 +192,8 @@ p4 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -232,8 +234,8 @@ p5 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -264,7 +266,7 @@ dat <- aggregate(CASES ~ AGEGROUP + SEX, dat, sum)
 dat$CASES <- dat$CASES / nweeks
 
 # Create plots in engl
-p5 <- ggplot(data = dat) +
+p6 <- ggplot(data = dat) +
   geom_bar(aes(AGEGROUP, CASES, group = SEX, fill = SEX),
     stat = "identity",
     subset(dat, SEX == "Female")
@@ -275,8 +277,8 @@ p5 <- ggplot(data = dat) +
   ) +
   scale_y_continuous(
     limits = c(lower_limit, upper_limit),
-    breaks = seq(lower_limit, upper_limit, 200),
-    labels = abs(seq(lower_limit, upper_limit, 200))
+    breaks = seq(lower_limit, upper_limit, breaks),
+    labels = abs(seq(lower_limit, upper_limit, breaks))
   ) +
   coord_flip() +
   theme_minimal() +
@@ -293,8 +295,10 @@ p5 <- ggplot(data = dat) +
 
 p6
 
-p1 + p2 + p3 + p4 + p5 + p6
+p <- p1 + p2 + p3 + p4 + p5 + p6
+p
 
 # save plot
-ggsave("pyramid-plot-week-limit.png")
-# ggsave("pyramid-plot-week.pdf")
+png(file = "pyramid-plot-week-limit2.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
+p
+dev.off()
