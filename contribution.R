@@ -59,6 +59,8 @@ dat$PROVINCE <- factor(dat$PROVINCE,
                        )
 )
 
+dat_full <- aggregate(CASES ~ PROVINCE, dat, sum)
+
 max_date <- max(as.Date(dat$DATE), na.rm = TRUE)
 dat <- subset(dat, DATE >= max_date - 14)
 
@@ -79,25 +81,44 @@ dat_diff$contrib_change <- dat_diff$CASES_diff / (belgium[2, 2] - belgium[1, 2])
 
 dat_diff$contrib_level <- dat_week2$CASES / (belgium[2, 2])
 
-dat <- dat_diff
+dat_final <- dat_diff %>%
+  mutate(population = case_when(
+    PROVINCE == "Antwerpen" ~ 1857986,
+    PROVINCE == "Brabant wallon" ~ 403599,
+    PROVINCE == "Brussels" ~ 1208542,
+    PROVINCE == "Hainaut" ~ 1344241,
+    PROVINCE == "Liège" ~ 1106992,
+    PROVINCE == "Limburg" ~ 874048,
+    PROVINCE == "Luxembourg" ~ 284638,
+    PROVINCE == "Namur" ~ 494325,
+    PROVINCE == "Oost-Vlaanderen" ~ 1515064,
+    PROVINCE == "Vlaams-Brabant" ~ 1146175,
+    PROVINCE == "West-Vlaanderen" ~ 1195796
+  )) %>%
+  mutate(CASES = dat_full$CASES) %>%
+  mutate(incidence = CASES / population) %>%
+  mutate(contrib_change_divid = contrib_change / population) %>%
+  mutate(contrib_level_divid = contrib_level / population)
 
-p <- ggplot(dat, aes(x = contrib_level * 100, y = contrib_change * 100)) +
+p <- ggplot(dat_final, aes(x = contrib_level, y = contrib_change)) +
   geom_point(color = "red") +
-  geom_text_repel(aes(label = PROVINCE)) +
+  geom_text_repel(aes(label = paste0(PROVINCE, " (", round(incidence * 100, digits = 1), "%)"))) +
   theme_minimal() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
   labs(
-    x = "% contribution to level",
-    y = "% contribution to change"
+    x = "Contribution to level",
+    y = "Contribution to change"
     ) +
   NULL
 p
 
-## adjust caption at the end of the trend figure
+## adjust caption at the end of the figure
 caption <- grobTree(
-  # textGrob(" * Ligne solide : moyenne mobile sur 7 jours / Volle lijnen : 7-daags voortschrijdend gemiddelde",
-  #          x = 0, hjust = 0, vjust = 0,
-  #          gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
-  # ),
+  textGrob(" * Incidence in parentheses \n",
+           x = 0, hjust = 0, vjust = 0,
+           gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
+  ),
   textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
            x = 1, hjust = 1, vjust = 0,
            gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
@@ -107,6 +128,28 @@ caption <- grobTree(
 
 # save plot
 png(file = "contrib_provinces.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
+ggarrange(grid.arrange(p, bottom = caption),
+          ncol = 1, widths = c(1, 1.5)
+)
+dev.off()
+
+
+
+## plot bis
+p <- ggplot(dat_final, aes(x = contrib_level_divid * 10000000, y = contrib_change_divid * 10000000)) +
+  geom_point(color = "red") +
+  geom_text_repel(aes(label = paste0(PROVINCE, " (", round(incidence * 100, digits = 1), "%)"))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal() +
+  labs(
+    x = "Contribution to level (per 10,000,000)",
+    y = "Contribution to change (per 10,000,000)"
+  ) +
+  NULL
+p
+# save plot
+png(file = "contrib_provinces_bis.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(grid.arrange(p, bottom = caption),
           ncol = 1, widths = c(1, 1.5)
 )
@@ -125,6 +168,8 @@ dat <- transform(dat,
                  DATE = as.Date(DATE),
                  AGEGROUP = factor(AGEGROUP)
 )
+
+dat_full <- aggregate(CASES ~ AGEGROUP, dat, sum)
 
 max_date <- max(as.Date(dat$DATE), na.rm = TRUE)
 dat <- subset(dat, DATE >= max_date - 14)
@@ -146,21 +191,60 @@ dat_diff$contrib_change <- dat_diff$CASES_diff / (belgium[2, 2] - belgium[1, 2])
 
 dat_diff$contrib_level <- dat_week2$CASES / (belgium[2, 2])
 
-dat <- dat_diff
+dat_final <- dat_diff %>%
+  mutate(population = case_when(
+    AGEGROUP == "0-9" ~ 1269068,
+    AGEGROUP == "10-19" ~ 1300254,
+    AGEGROUP == "20-29" ~ 1407645,
+    AGEGROUP == "30-39" ~ 1492290,
+    AGEGROUP == "40-49" ~ 1504539,
+    AGEGROUP == "50-59" ~ 1590628,
+    AGEGROUP == "60-69" ~ 1347139,
+    AGEGROUP == "70-79" ~ 924291,
+    AGEGROUP == "80-89" ~ 539390,
+    AGEGROUP == "90+" ~ 117397
+  )) %>%
+  mutate(CASES = dat_full$CASES) %>%
+  mutate(incidence = CASES / population) %>%
+  mutate(contrib_change_divid = contrib_change / population) %>%
+  mutate(contrib_level_divid = contrib_level / population)
 
-p <- ggplot(dat, aes(x = contrib_level * 100, y = contrib_change * 100)) +
+p <- ggplot(dat_final, aes(x = contrib_level, y = contrib_change)) +
   geom_point(color = "red") +
-  geom_text_repel(aes(label = AGEGROUP)) +
+  geom_text_repel(aes(label = paste0(AGEGROUP, " years (", round(incidence * 100, digits = 1), "%)"))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
   theme_minimal() +
   labs(
-    x = "% contribution to level",
-    y = "% contribution to change"
+    x = "Contribution to level",
+    y = "Contribution to change"
   ) +
   NULL
 p
 
 # save plot
 png(file = "contrib_age.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
+ggarrange(grid.arrange(p, bottom = caption),
+          ncol = 1, widths = c(1, 1.5)
+)
+dev.off()
+
+
+## plot bis
+p <- ggplot(dat_final, aes(x = contrib_level_divid * 10000000, y = contrib_change_divid * 10000000)) +
+  geom_point(color = "red") +
+  geom_text_repel(aes(label = paste0(AGEGROUP, " years (", round(incidence * 100, digits = 1), "%)"))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal() +
+  labs(
+    x = "Contribution to level (per 10,000,000)",
+    y = "Contribution to change (per 10,000,000)"
+  ) +
+  NULL
+p
+# save plot
+png(file = "contrib_age_bis.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
 ggarrange(grid.arrange(p, bottom = caption),
           ncol = 1, widths = c(1, 1.5)
 )
