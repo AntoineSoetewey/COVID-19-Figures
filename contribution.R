@@ -2,6 +2,20 @@
 remove(list = ls())
 # required packages
 library(ggplot2)
+library(ggrepel)
+library(zoo)
+library(lme4)
+library(plyr)
+library(dplyr)
+library(scales)
+library(ggpubr)
+library(grid)
+library(gridExtra)
+library(magrittr)
+library(ggpol)
+library(reshape2)
+library(XML)
+library(patchwork)
 
 ############
 # PROVINCE #
@@ -72,8 +86,8 @@ p <- ggplot(dat, aes(x = contrib_level * 100, y = contrib_change * 100)) +
   geom_text_repel(aes(label = PROVINCE)) +
   theme_minimal() +
   labs(
-    x = "% contribution to change",
-    y = "% contribution to level"
+    x = "% contribution to level",
+    y = "% contribution to change"
     ) +
   NULL
 p
@@ -139,24 +153,11 @@ p <- ggplot(dat, aes(x = contrib_level * 100, y = contrib_change * 100)) +
   geom_text_repel(aes(label = AGEGROUP)) +
   theme_minimal() +
   labs(
-    x = "% contribution to change",
-    y = "% contribution to level"
+    x = "% contribution to level",
+    y = "% contribution to change"
   ) +
   NULL
 p
-
-## adjust caption at the end of the trend figure
-caption <- grobTree(
-  # textGrob(" * Ligne solide : moyenne mobile sur 7 jours / Volle lijnen : 7-daags voortschrijdend gemiddelde",
-  #          x = 0, hjust = 0, vjust = 0,
-  #          gp = gpar(col = "darkgray", fontsize = 7, lineheight = 1.2)
-  # ),
-  textGrob("Niko Speybroeck (@NikoSpeybroeck), Antoine Soetewey (@statsandr) & Angel Rosas (@arosas_aguirre) \n Data: https://epistat.wiv-isp.be/covid/  ",
-           x = 1, hjust = 1, vjust = 0,
-           gp = gpar(col = "black", fontsize = 7.5, lineheight = 1.2)
-  ),
-  cl = "ann"
-)
 
 # save plot
 png(file = "contrib_age.png", width = 15 * 360, heigh = 7 * 360, units = "px", pointsize = 7, res = 300)
